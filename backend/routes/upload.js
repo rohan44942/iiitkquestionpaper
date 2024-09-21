@@ -1,10 +1,12 @@
-// we write the route and then in controller write the contorller of it
 const express = require("express");
 const { uploadfunc, uploadfunc2 } = require("../controller/uploadcontroller");
-const router = express.Router();
-const app = express();
+const multer = require("multer");
+const upload = multer({ dest: "data/" }); // Configure multer as needed
 
-router.get("/", uploadfunc);
+const router = express.Router();
+
+// Use POST for uploads
+router.post("/", upload.single("image"), uploadfunc); // Adjust field name if necessary
 router.get("/data", uploadfunc2);
 
 module.exports = { router };

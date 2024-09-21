@@ -1,76 +1,78 @@
 import { useState } from "react";
 
 function Uploaddoc() {
-  const apiurl = "http://localhost:5000"
+  const apiurl = "http://localhost:5000";
   const initialState = null;
   const [upload, setUpload] = useState(initialState);
   const [preview, setPreview] = useState(null);
 
   const handleImageChange = (e) => {
-    // console.log("this is the file ", e.target.files[0]);
     const file = e.target.files[0];
     setUpload(file);
+
     if (file) {
       const imagePreviewUrl = URL.createObjectURL(file);
       setPreview(imagePreviewUrl);
+    } else {
+      setPreview(null);
     }
   };
 
-  
-const handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (upload) {
       const formData = new FormData();
-      formData.append("image", upload);
-      console.log(formData.get("image"));
+      formData.append("file", upload);
 
-        fetch(`${apiurl}/api/upload`, {
-        method: "POST",
-        body: formData,
-      })
-        .then((response) => response.json()) 
-        .then((data) => {
-          console.log(data); 
-        })
-        .catch((error) => {
-          console.error("Error:", error); 
-        });
-    } else {
-      console.log("Please upload an image");
+      // Log the form data to confirm it's correct
+      console.log(formData.get("file"));
+
+      // Upload the image using fetch
+      async function uploadImage(formData) {
+        try {
+          const response = await fetch(`${apiurl}/uploads`, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          console.log("This is the data:", data);
+        } catch (error) {
+          console.error("Error uploading the file:", error);
+        }
+      }
+
+      uploadImage(formData);
     }
   };
+
   return (
-    <>
-      <div className="flex flex-col justify-center text-center align-middle ">
-        <form
-          onSubmit={(e) => {
-            handleSubmit(e);
-          }}
-        >
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              handleImageChange(e);
-            }}
-          ></input>
-          <button type="submit" className="bg-slate-800 text-white p-1 ">
-            Submit
-          </button>
-        </form>
-        {preview && (
-          <div className="mt-4 flex justify-center align-middle ">
-            <img
-              src={preview}
-              alt="Selected"
-              className="w-64 h-64 object-cover border border-gray-300"
-            />
-          </div>
-        )}
-      </div>
-      {/* <div></div> */}
-    </>
+    <div className="flex flex-col justify-center text-center align-middle">
+      <form onSubmit={handleSubmit}>
+        <input
+          type="file"
+          name="image"
+          onChange={handleImageChange}
+        />
+        <button type="submit" className="bg-slate-800 text-white p-1">
+          Submit
+        </button>
+      </form>
+      {preview && (
+        <div className="mt-4 flex justify-center align-middle">
+          <img
+            src={preview}
+            alt="Selected"
+            className="w-64 h-64 object-cover border border-gray-300"
+          />
+        </div>
+      )}
+    </div>
   );
 }
 
