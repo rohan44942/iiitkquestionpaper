@@ -1,14 +1,6 @@
-const uploadfunc = async (req, res) => {
-  try {
-    // Access uploaded file through req.file if needed
-    // const imageName = req.file.filename;
-    console.log(req.body);
-    console.log(req.file);
-    res.send({ imageName: "rohan" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Internal Server Error");
-  }
+const uploadfunc = (req, res) => {
+  console.log(req.file);
+  res.status(200).json({ message: "File uploaded successfully!" });
 };
 
 const uploadfunc2 = async (req, res) => {
