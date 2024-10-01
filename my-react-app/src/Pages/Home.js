@@ -1,48 +1,157 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
+import { FaDownload, FaEye } from "react-icons/fa";
 
 function Home() {
   const [files, setFiles] = useState([]);
   const [error, setError] = useState(null);
+  const [yearFilter, setYearFilter] = useState("");
+  const [branchFilter, setBranchFilter] = useState("");
 
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        // Fetching the metadata of all uploaded files
-        const response = await fetch('http://localhost:5000/api/uploads');
-        if (!response.ok) throw new Error('Failed to fetch files');
+        const response = await fetch("http://localhost:5000/api/uploads");
+        if (!response.ok) throw new Error("Failed to fetch files");
         const data = await response.json();
-        setFiles(data); // Update state with file metadata
+        setFiles(data);
       } catch (err) {
-        setError(err.message); // Capture any errors
+        setError(err.message);
       }
     };
 
     fetchFiles();
   }, []);
 
+  const filteredFiles = files.filter((file) => {
+    return (
+      (yearFilter ? file.year === yearFilter : true) &&
+      (branchFilter ? file.branch === branchFilter : true)
+    );
+  });
+
   if (error) {
-    return <div>Error: {error}</div>; // Display error if any
+    return <div className="text-red-500 text-center">Error: {error}</div>;
   }
 
   return (
-    <div>
-      <h1>Uploaded Files</h1>
-      {files.length > 0 ? (
-        <ul>
-          {files.map((file) => (
-            <li key={file._id}>
-              {/* Link to download/view the file */}
-              <a href={`http://localhost:5000/api/uploads/${file.filename}`} target="_blank" rel="noopener noreferrer">
-                {file.filename}
-              </a>
-              {/* Optionally display other metadata */}
-              <p>Upload Date: {new Date(file.uploadDate).toLocaleString()}</p>
-              <p>File Size: {file.length} bytes</p>
-            </li>
+    <div className="bg-cream min-h-screen p-6">
+      <h1 className="text-3xl font-bold mb-6 text-center text-light-green">
+        IIITK Resources Files
+      </h1>
+
+      <div className="flex justify-between mb-4">
+        <select
+          value={yearFilter}
+          onChange={(e) => setYearFilter(e.target.value)}
+          className="border rounded-lg p-2 bg-white"
+        >
+          <option value="">All Years</option>
+          <option value="first">First Year</option>
+          <option value="second">Second Year</option>
+          <option value="third">Third Year</option>
+          <option value="fourth">Fourth Year</option>
+        </select>
+
+        <select
+          value={branchFilter}
+          onChange={(e) => setBranchFilter(e.target.value)}
+          className="border rounded-lg p-2 bg-white"
+        >
+          <option value="">All Branches</option>
+          <option value="cse">Computer Science Engineering</option>
+          <option value="ece">Electronics and Communication Engineering</option>
+          <option value="ai">Artificial Intelligence</option>
+        </select>
+      </div>
+
+      {filteredFiles.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {filteredFiles.map((file, index) => (
+            <div
+              key={file._id}
+              className="border rounded-lg shadow-lg p-6 bg-white flex flex-col"
+            >
+              <div className="flex-shrink-0 mb-4">
+                {file.filename.endsWith(".pdf") ? (
+                  <iframe
+                    title="PDF Preview"
+                    className="w-full h-48 border"
+                    src={`http://localhost:5000/api/uploads/${file.filename}`}
+                    loading="lazy"
+                    style={{ display: "block" }} // Ensure the PDF preview is displayed
+                  />
+                ) : (
+                  <LazyLoadImage
+                    alt={file.filename}
+                    effect="blur"
+                    className="w-full h-48 object-cover cursor-pointer rounded hover:opacity-80 shadow"
+                    src={`http://localhost:5000/api/uploads/${file.filename}`}
+                    onClick={() =>
+                      window.open(
+                        `http://localhost:5000/api/uploads/${file.filename}`,
+                        "_blank"
+                      )
+                    }
+                    height={200}
+                    width={200}
+                  />
+                )}
+              </div>
+
+              <div className="flex-grow">
+                <h3 className="text-lg font-semibold text-light-green hover:underline">
+                  <a
+                    href={`http://localhost:5000/api/uploads/${file.filename}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {file.fileName}
+                  </a>
+                </h3>
+                <p className="text-gray-500 text-sm">
+                  Description: {file.description}
+                </p>
+                <p className="text-gray-500 text-sm">Year: {file.year}</p>
+                <p className="text-gray-500 text-sm">Branch: {file.branch}</p>
+                <p className="text-gray-500 text-sm">
+                  Course Name: {file.courseName}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  Uploaded on: {new Date(file.uploadDate).toLocaleString()}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  File Size: {file.length} bytes
+                </p>
+
+                <div className="mt-4 flex space-x-4">
+                  <a
+                    href={`http://localhost:5000/api/uploads/${file.filename}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-blue-500 underline hover:text-blue-700"
+                  >
+                    <FaDownload className="mr-1" /> Download
+                  </a>
+                  <a
+                    onClick={() =>
+                      window.open(
+                        `http://localhost:5000/api/uploads/${file.filename}`,
+                        "_blank"
+                      )
+                    }
+                    className="flex items-center text-blue-500 underline hover:text-blue-700 cursor-pointer"
+                  >
+                    <FaEye className="mr-1" /> View
+                  </a>
+                </div>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       ) : (
-        <p>No files found.</p>
+        <p className="text-center text-gray-500">No files found.</p>
       )}
     </div>
   );
