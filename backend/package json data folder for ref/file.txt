@@ -25,3 +25,31 @@
     "bson": "6.8.0"
   }
 }
+// 
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "npm run server.js",
+    "start": "nodemon server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "bson": "^6.8.0",
+    "express": "^4.21.0",
+    "gridfs-stream": "^1.1.1",
+    "mongo": "^0.1.0",
+    "mongodb": "^4.4.0",
+    "mongoose": "^6.0.0",
+    "multer": "^1.4.2",
+    "multer-gridfs-storage": "^5.0.2",
+    "nodemon": "^3.1.7"
+  },
+  "resolutions": {
+    "bson": "6.8.0"
+  }
+}
