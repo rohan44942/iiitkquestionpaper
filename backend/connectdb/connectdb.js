@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
-const mongoapi = "mongodb://localhost:27017/iiitk_resources"; // Explicit database name
+// const dotenv = require("dotenv");
+// dotenv.config({ path: ".env" });
 
+// const mongoapi = process.env.uri; // Explicit database name
+// const mongoapi = "mongodb://127.0.0.1:27017/iiitk_resources";
+const mongoapi =
+  "mongodb+srv://2021kucp1109:OkfIRMFSZpnuv1UI@cluster0.4brou.mongodb.net/iiitk_resources?retryWrites=true&w=majority&appName=Cluster0";
 const connect = async () => {
   try {
     await mongoose.connect(mongoapi, {

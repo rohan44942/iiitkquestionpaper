@@ -121,7 +121,7 @@
 import { useState } from "react";
 
 function Uploaddoc() {
-  const apiurl = "http://localhost:5000";
+  const apiurl = "https://iiitkresources.onrender.com";
   const initialState = null;
   const [upload, setUpload] = useState(initialState);
   const [preview, setPreview] = useState(null);

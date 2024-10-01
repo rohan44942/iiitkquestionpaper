@@ -12,7 +12,7 @@ function Home() {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/uploads");
+        const response = await fetch("https://iiitkresources.onrender.com/api/uploads");
         if (!response.ok) throw new Error("Failed to fetch files");
         const data = await response.json();
         setFiles(data);
@@ -78,7 +78,7 @@ function Home() {
                   <iframe
                     title="PDF Preview"
                     className="w-full h-48 border"
-                    src={`http://localhost:5000/api/uploads/${file.filename}`}
+                    src={`https://iiitkresources.onrender.com/api/uploads/${file.filename}`}
                     loading="lazy"
                     style={{ display: "block" }} // Ensure the PDF preview is displayed
                   />
@@ -87,10 +87,10 @@ function Home() {
                     alt={file.filename}
                     effect="blur"
                     className="w-full h-48 object-cover cursor-pointer rounded hover:opacity-80 shadow"
-                    src={`http://localhost:5000/api/uploads/${file.filename}`}
+                    src={`https://iiitkresources.onrender.com/api/uploads/${file.filename}`}
                     onClick={() =>
                       window.open(
-                        `http://localhost:5000/api/uploads/${file.filename}`,
+                        `https://iiitkresources.onrender.com/api/uploads/${file.filename}`,
                         "_blank"
                       )
                     }
@@ -103,7 +103,7 @@ function Home() {
               <div className="flex-grow">
                 <h3 className="text-lg font-semibold text-light-green hover:underline">
                   <a
-                    href={`http://localhost:5000/api/uploads/${file.filename}`}
+                    href={`https://iiitkresources.onrender.com/api/uploads/${file.filename}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -131,7 +131,7 @@ function Home() {
 
                 <div className="mt-4 flex space-x-4">
                   <a
-                    href={`http://localhost:5000/api/uploads/${file.filename}`}
+                    href={`https://iiitkresources.onrender.com/api/uploads/${file.filename}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center text-blue-500 underline hover:text-blue-700"
@@ -141,7 +141,7 @@ function Home() {
                   <a
                     onClick={() =>
                       window.open(
-                        `http://localhost:5000/api/uploads/${file.filename}`,
+                        `https://iiitkresources.onrender.com/api/uploads/${file.filename}`,
                         "_blank"
                       )
                     }

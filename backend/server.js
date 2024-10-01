@@ -5,7 +5,8 @@ const GridFsStorage = require("multer-gridfs-storage").GridFsStorage;
 const mongoose = require("mongoose");
 const { connect } = require("../backend/connectdb/connectdb");
 const path = require("path");
-
+const mongoapi =
+  "mongodb+srv://2021kucp1109:OkfIRMFSZpnuv1UI@cluster0.4brou.mongodb.net/iiitk_resources?retryWrites=true&w=majority&appName=Cluster0";
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -20,11 +21,13 @@ connect().then(() => {
   const db = mongoose.connection.db;
   gridfsBucket = new mongoose.mongo.GridFSBucket(db, { bucketName: "uploads" });
   gfs = gridfsBucket;
+  // console.log("thiss is runing")
 });
 
 // Set up GridFS storage engine
 const storage = new GridFsStorage({
-  url: "mongodb://localhost:27017/iiitk_resources",
+  // url: "mongodb+srv://2021kucp1109:OkfIRMFSZpnuv1UI@cluster0.4brou.mongodb.net/iiitk_resources?retryWrites=true&w=majority&appName=Cluster0",
+  url: mongoapi,
   file: (req, file) => {
     const filename = `${file.fieldname}_${Date.now()}${path.extname(
       file.originalname
