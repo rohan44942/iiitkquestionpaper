@@ -26,8 +26,8 @@ function Home() {
 
   const filteredFiles = files.filter((file) => {
     return (
-      (yearFilter ? file.year === yearFilter : true) &&
-      (branchFilter ? file.branch === branchFilter : true)
+      (yearFilter ? file.metadata.year === yearFilter : true) &&
+      (branchFilter ? file.metadata.branch === branchFilter : true)
     );
   });
 
@@ -107,16 +107,20 @@ function Home() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {file.fileName}
+                    {file.metadata.fileName || file.filename}
                   </a>
                 </h3>
                 <p className="text-gray-500 text-sm">
-                  Description: {file.description}
+                  Description: {file.metadata.description || "No description"}
                 </p>
-                <p className="text-gray-500 text-sm">Year: {file.year}</p>
-                <p className="text-gray-500 text-sm">Branch: {file.branch}</p>
                 <p className="text-gray-500 text-sm">
-                  Course Name: {file.courseName}
+                  Year: {file.metadata.year}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  Branch: {file.metadata.branch}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  Course Name: {file.metadata.courseName || "Unknown"}
                 </p>
                 <p className="text-gray-500 text-sm">
                   Uploaded on: {new Date(file.uploadDate).toLocaleString()}
