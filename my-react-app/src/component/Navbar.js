@@ -1,18 +1,38 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 
 function Navbar() {
-  const { isAuthenticated, isLoading } = useAuth0();
+  const { isAuthenticated } = useAuth0();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const toggleMenu = () => setMenuOpen(!menuOpen);
+
   return (
-    <nav className="flex justify-between items-center py-8 px-6 bg-gray-100 shadow-lg">
+    <nav className="flex justify-between items-center py-4 px-6 bg-gray-100 shadow-lg">
       <div className="text-xl font-bold text-gray-700">Logo</div>
-      <ul className="flex gap-8 pr-14">
+
+      {/* Toggle Button for Mobile */}
+      <button
+        className="text-gray-600 text-2xl md:hidden"
+        onClick={toggleMenu}
+      >
+        ☰
+      </button>
+
+      {/* Menu Items */}
+      <ul
+        className={`flex-col md:flex-row md:flex md:items-center gap-8 pr-14 absolute md:static left-0 right-0 bg-gray-100 md:bg-transparent w-full md:w-auto transition-transform duration-300 ease-in-out ${
+          menuOpen ? "top-16 flex justify-center items-center" : "-top-full"
+        } md:top-auto`}
+      >
         <li>
           <NavLink
             exact
             to="/"
             activeClassName="active-link"
             className="text-gray-600 text-lg font-medium hover:text-red-500 "
+            onClick={toggleMenu}
           >
             Home
           </NavLink>
@@ -22,6 +42,7 @@ function Navbar() {
             to="/about"
             activeClassName="active-link"
             className="text-gray-600 text-lg font-medium hover:text-red-500 "
+            onClick={toggleMenu}
           >
             About
           </NavLink>
@@ -32,6 +53,7 @@ function Navbar() {
               to="/user"
               activeClassName="active-link"
               className="text-gray-600 text-lg font-medium hover:text-red-500 "
+              onClick={toggleMenu}
             >
               User
             </NavLink>
@@ -40,6 +62,7 @@ function Navbar() {
               to="/login"
               activeClassName="active-link"
               className="text-gray-600 text-lg font-medium hover:text-red-500 "
+              onClick={toggleMenu}
             >
               Login
             </NavLink>
@@ -51,6 +74,7 @@ function Navbar() {
               to="/upload"
               activeClassName="active-link"
               className="text-gray-600 text-lg font-medium hover:text-red-500 "
+              onClick={toggleMenu}
             >
               Upload
             </NavLink>
@@ -61,6 +85,7 @@ function Navbar() {
               to="/login"
               activeClassName="active-link"
               className="text-gray-600 text-lg font-medium hover:text-red-500 "
+              onClick={toggleMenu}
             >
               Upload
             </NavLink>
