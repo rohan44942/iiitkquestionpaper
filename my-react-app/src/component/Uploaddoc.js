@@ -31,11 +31,12 @@ function Uploaddoc() {
 
     if (upload) {
       const formData = new FormData();
-      formData.append("image", upload); // Image file
-      formData.append("fileName", fileName); // File name
-      formData.append("description", description); // Description
-      formData.append("year", year); // Year
-      formData.append("branch", branch); // Branch
+      formData.append("image", upload);
+      formData.append("fileName", fileName);
+      formData.append("description", description);
+      formData.append("year", year);
+      formData.append("branch", branch);
+      formData.append("semester", semester);
 
       // Log the form data entries to confirm they are appended correctly
       console.log("FormData:", Array.from(formData.entries()));
@@ -87,7 +88,6 @@ function Uploaddoc() {
           required
         />
 
-        {/* Input for Year */}
         <select
           value={year}
           onChange={(e) => setYear(e.target.value)}
@@ -95,12 +95,25 @@ function Uploaddoc() {
           required
         >
           <option value="" disabled>
-            Select Year
+            Select Year and Semester
           </option>
-          <option value="first">1st</option>
-          <option value="second">2nd</option>
-          <option value="third">3rd</option>
-          <option value="fourth">4th</option>
+          <option value="1st sem midterm">1st Sem Mid-Term</option>
+          <option value="1st sem endterm">1st Sem End-Term</option>
+          <option value="2nd sem midterm">2nd Sem Mid-Term</option>
+          <option value="2nd sem endterm">2nd Sem End-Term</option>
+          <option value="3rd sem midterm">3rd Sem Mid-Term</option>
+          <option value="3rd sem endterm">3rd Sem End-Term</option>
+          <option value="4th sem midterm">4th Sem Mid-Term</option>
+          <option value="4th sem endterm">4th Sem End-Term</option>
+          <option value="5th sem midterm">5th Sem Mid-Term</option>
+          <option value="5th sem endterm">5th Sem End-Term</option>
+          <option value="6th sem midterm">6th Sem Mid-Term</option>
+          <option value="6th sem endterm">6th Sem End-Term</option>
+          <option value="7th sem midterm">7th Sem Mid-Term</option>
+          <option value="7th sem endterm">7th Sem End-Term</option>
+          <option value="8th sem midterm">8th Sem Mid-Term</option>
+          <option value="8th sem endterm">8th Sem End-Term</option>
+          <option value="supplementary ">Supplementary</option>
         </select>
 
         {/* Input for Branch */}
@@ -113,9 +126,9 @@ function Uploaddoc() {
           <option value="" disabled>
             Select Branch
           </option>
-          <option value="cse">Computer Science Engineering</option>
-          <option value="ece">Electronics and Communication Engineering</option>
-          <option value="ai">Artificial Intelligence</option>
+          <option value="CSE">Computer Science Engineering</option>
+          <option value="ECE">Electronics and Communication Engineering</option>
+          <option value="AI">Artificial Intelligence</option>
         </select>
 
         {/* Input for Name of File */}
@@ -123,7 +136,7 @@ function Uploaddoc() {
           type="text"
           value={fileName}
           onChange={(e) => setFileName(e.target.value)}
-          placeholder="Name of the File"
+          placeholder="Name of the course eg analong system"
           className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2 mb-4"
           required
         />
