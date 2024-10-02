@@ -36,7 +36,6 @@ function Uploaddoc() {
       formData.append("description", description);
       formData.append("year", year);
       formData.append("branch", branch);
-      formData.append("semester", semester);
 
       // Log the form data entries to confirm they are appended correctly
       console.log("FormData:", Array.from(formData.entries()));
