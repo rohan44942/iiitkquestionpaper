@@ -1,8 +1,10 @@
 const mongoose = require("mongoose");
 require("dotenv").config(); // Load .env file
+mongoose.set("strictQuery", true);
 
 // Choose the appropriate MongoDB URL based on the environment
 const mongoapi = process.env.MONGO_URL_ATLASH;
+
 
 const connect = async () => {
   try {
@@ -11,7 +13,7 @@ const connect = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("Connected to MongoDB successfully");
+    console.log("Connected to MongoDB successfully", mongoapi);
   } catch (err) {
     console.error("Error connecting to MongoDB:", err);
   }

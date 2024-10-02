@@ -6,8 +6,10 @@ const mongoose = require("mongoose");
 const { connect } = require("../backend/connectdb/connectdb");
 const path = require("path");
 require("dotenv").config();
+// const mongoapi = process.env.MONGO_URL_ATLASH;
 const mongoapi =
-  process.env.MONGO_URL_ATLASH;
+  "mongodb+srv://2021kucp1109:OkfIRMFSZpnuv1UI@cluster0.4brou.mongodb.net/iiitk_resources?retryWrites=true&w=majority&appName=Cluster0";
+
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -19,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 let gfs, gridfsBucket;
 
 connect().then(() => {
+  console.log(mongoapi);
   const db = mongoose.connection.db;
   gridfsBucket = new mongoose.mongo.GridFSBucket(db, { bucketName: "uploads" });
   gfs = gridfsBucket;
