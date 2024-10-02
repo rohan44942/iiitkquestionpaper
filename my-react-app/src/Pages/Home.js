@@ -8,11 +8,15 @@ function Home() {
   const [error, setError] = useState(null);
   const [yearFilter, setYearFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const response = await fetch("https://iiitkresources.onrender.com/api/uploads");
+        const response = await fetch(
+          // "${apiUrl}api/uploads"
+          `${apiUrl}/api/uploads`
+        );
         if (!response.ok) throw new Error("Failed to fetch files");
         const data = await response.json();
         setFiles(data);
@@ -38,7 +42,7 @@ function Home() {
   return (
     <div className="bg-cream min-h-screen p-6">
       <h1 className="text-3xl font-bold mb-6 text-center text-light-green">
-        IIITK Resources Files
+        IIITK Resource Files
       </h1>
 
       <div className="flex justify-between mb-4">
@@ -48,10 +52,23 @@ function Home() {
           className="border rounded-lg p-2 bg-white"
         >
           <option value="">All Years</option>
-          <option value="first">First Year</option>
-          <option value="second">Second Year</option>
-          <option value="third">Third Year</option>
-          <option value="fourth">Fourth Year</option>
+          <option value="1st sem midterm">1st Sem Mid-Term</option>
+          <option value="1st sem endterm">1st Sem End-Term</option>
+          <option value="2nd sem midterm">2nd Sem Mid-Term</option>
+          <option value="2nd sem endterm">2nd Sem End-Term</option>
+          <option value="3rd sem midterm">3rd Sem Mid-Term</option>
+          <option value="3rd sem endterm">3rd Sem End-Term</option>
+          <option value="4th sem midterm">4th Sem Mid-Term</option>
+          <option value="4th sem endterm">4th Sem End-Term</option>
+          <option value="5th sem midterm">5th Sem Mid-Term</option>
+          <option value="5th sem endterm">5th Sem End-Term</option>
+          <option value="6th sem midterm">6th Sem Mid-Term</option>
+          <option value="6th sem endterm">6th Sem End-Term</option>
+          <option value="7th sem midterm">7th Sem Mid-Term</option>
+          <option value="7th sem endterm">7th Sem End-Term</option>
+          <option value="8th sem midterm">8th Sem Mid-Term</option>
+          <option value="8th sem endterm">8th Sem End-Term</option>
+          <option value="supplementary sem midterm">Supplementary</option>
         </select>
 
         <select
@@ -78,7 +95,7 @@ function Home() {
                   <iframe
                     title="PDF Preview"
                     className="w-full h-48 border"
-                    src={`https://iiitkresources.onrender.com/api/uploads/${file.filename}`}
+                    src={`${apiUrl}/api/uploads/${file.filename}`}
                     loading="lazy"
                     style={{ display: "block" }} // Ensure the PDF preview is displayed
                   />
@@ -87,10 +104,10 @@ function Home() {
                     alt={file.filename}
                     effect="blur"
                     className="w-full h-48 object-cover cursor-pointer rounded hover:opacity-80 shadow"
-                    src={`https://iiitkresources.onrender.com/api/uploads/${file.filename}`}
+                    src={`${apiUrl}/api/uploads/${file.filename}`}
                     onClick={() =>
                       window.open(
-                        `https://iiitkresources.onrender.com/api/uploads/${file.filename}`,
+                        `${apiUrl}/api/uploads/${file.filename}`,
                         "_blank"
                       )
                     }
@@ -103,7 +120,7 @@ function Home() {
               <div className="flex-grow">
                 <h3 className="text-lg font-semibold text-light-green hover:underline">
                   <a
-                    href={`https://iiitkresources.onrender.com/api/uploads/${file.filename}`}
+                    href={`${apiUrl}/api/uploads/${file.filename}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -131,7 +148,7 @@ function Home() {
 
                 <div className="mt-4 flex space-x-4">
                   <a
-                    href={`https://iiitkresources.onrender.com/api/uploads/${file.filename}`}
+                    href={`${apiUrl}/api/uploads/${file.filename}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center text-blue-500 underline hover:text-blue-700"
@@ -139,9 +156,10 @@ function Home() {
                     <FaDownload className="mr-1" /> Download
                   </a>
                   <a
+                    href={`${apiUrl}/api/uploads/${file.filename}`}
                     onClick={() =>
                       window.open(
-                        `https://iiitkresources.onrender.com/api/uploads/${file.filename}`,
+                        `${apiUrl}/api/uploads/${file.filename}`,
                         "_blank"
                       )
                     }
