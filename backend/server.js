@@ -5,8 +5,9 @@ const GridFsStorage = require("multer-gridfs-storage").GridFsStorage;
 const mongoose = require("mongoose");
 const { connect } = require("../backend/connectdb/connectdb");
 const path = require("path");
+require("dotenv").config();
 const mongoapi =
-  "mongodb+srv://2021kucp1109:OkfIRMFSZpnuv1UI@cluster0.4brou.mongodb.net/iiitk_resources?retryWrites=true&w=majority&appName=Cluster0";
+  process.env.MONGO_URL_LOCAL_HOST || process.env.MONGO_URL_ATLASH;
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -57,6 +58,7 @@ app.post("/api/uploads", upload.single("image"), async (req, res) => {
           "metadata.branch": branch || "N/A",
           "metadata.description": description || "No description",
           "metadata.fileName": fileName || req.file.filename,
+          "metadata.courseName": fileName || req.file.filename,
         },
       }
     );

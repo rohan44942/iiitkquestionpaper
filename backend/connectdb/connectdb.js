@@ -1,20 +1,19 @@
 const mongoose = require("mongoose");
-// const dotenv = require("dotenv");
-// dotenv.config({ path: ".env" });
+require('dotenv').config();  
 
-// const mongoapi = process.env.uri; // Explicit database name
-// const mongoapi = "mongodb://127.0.0.1:27017/iiitk_resources";
-const mongoapi =
-  "mongodb+srv://2021kucp1109:OkfIRMFSZpnuv1UI@cluster0.4brou.mongodb.net/iiitk_resources?retryWrites=true&w=majority&appName=Cluster0";
+// Choose the appropriate MongoDB URL based on the environment
+const mongoapi = process.env.MONGO_URL_LOCAL_HOST || process.env.MONGO_URL_ATLASH;
+
 const connect = async () => {
   try {
+    console.log(`Connecting to MongoDB at ${mongoapi}`);
     await mongoose.connect(mongoapi, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("Connected to MongoDB at", mongoapi);
+    console.log("Connected to MongoDB successfully");
   } catch (err) {
-    console.log("Error connecting to MongoDB:", err);
+    console.error("Error connecting to MongoDB:", err);
   }
 };
 
