@@ -7,7 +7,7 @@ const { connect } = require("../backend/connectdb/connectdb");
 const path = require("path");
 require("dotenv").config();
 const mongoapi =
-  process.env.MONGO_URL_LOCAL_HOST || process.env.MONGO_URL_ATLASH;
+  process.env.MONGO_URL_ATLASH;
 const app = express();
 const port = process.env.PORT || 5000;
 
