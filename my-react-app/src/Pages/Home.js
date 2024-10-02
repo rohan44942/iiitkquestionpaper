@@ -8,21 +8,25 @@ function Home() {
   const [error, setError] = useState(null);
   const [yearFilter, setYearFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const response = await fetch("https://iiitkresources.onrender.com/api/uploads");
+        const response = await fetch(`${apiUrl}/api/uploads`);
         if (!response.ok) throw new Error("Failed to fetch files");
         const data = await response.json();
         setFiles(data);
       } catch (err) {
         setError(err.message);
+      } finally {
+        setIsLoading(false); // Set loading to false after fetching is done
       }
     };
 
     fetchFiles();
-  }, []);
+  }, [apiUrl]);
 
   const filteredFiles = files.filter((file) => {
     return (
@@ -48,10 +52,10 @@ function Home() {
           className="border rounded-lg p-2 bg-white"
         >
           <option value="">All Years</option>
-          <option value="first">First Year</option>
-          <option value="second">Second Year</option>
-          <option value="third">Third Year</option>
-          <option value="fourth">Fourth Year</option>
+          <option value="first">1st</option>
+          <option value="second">2nd</option>
+          <option value="third">3rd</option>
+          <option value="fourth">4th</option>
         </select>
 
         <select
@@ -66,9 +70,13 @@ function Home() {
         </select>
       </div>
 
-      {filteredFiles.length > 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center items-center h-48">
+          <span className="loader">Loading files...</span> {/* Loading indicator */}
+        </div>
+      ) : filteredFiles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {filteredFiles.map((file, index) => (
+          {filteredFiles.map((file) => (
             <div
               key={file._id}
               className="border rounded-lg shadow-lg p-6 bg-white flex flex-col"
@@ -78,7 +86,7 @@ function Home() {
                   <iframe
                     title="PDF Preview"
                     className="w-full h-48 border"
-                    src={`https://iiitkresources.onrender.com/api/uploads/${file.filename}`}
+                    src={`${apiUrl}/api/uploads/${file.filename}`}
                     loading="lazy"
                     style={{ display: "block" }} // Ensure the PDF preview is displayed
                   />
@@ -87,15 +95,16 @@ function Home() {
                     alt={file.filename}
                     effect="blur"
                     className="w-full h-48 object-cover cursor-pointer rounded hover:opacity-80 shadow"
-                    src={`https://iiitkresources.onrender.com/api/uploads/${file.filename}`}
+                    src={`${apiUrl}/api/uploads/${file.filename}`}
                     onClick={() =>
                       window.open(
-                        `https://iiitkresources.onrender.com/api/uploads/${file.filename}`,
+                        `${apiUrl}/api/uploads/${file.filename}`,
                         "_blank"
                       )
                     }
                     height={200}
                     width={200}
+                     onLoad={() => handleFileLoad(file._id)} 
                   />
                 )}
               </div>
@@ -103,7 +112,7 @@ function Home() {
               <div className="flex-grow">
                 <h3 className="text-lg font-semibold text-light-green hover:underline">
                   <a
-                    href={`https://iiitkresources.onrender.com/api/uploads/${file.filename}`}
+                    href={`${apiUrl}/api/uploads/${file.filename}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -113,25 +122,17 @@ function Home() {
                 <p className="text-gray-500 text-sm">
                   Description: {file.metadata.description || "No description"}
                 </p>
-                <p className="text-gray-500 text-sm">
-                  Year: {file.metadata.year}
-                </p>
-                <p className="text-gray-500 text-sm">
-                  Branch: {file.metadata.branch}
-                </p>
-                <p className="text-gray-500 text-sm">
-                  Course Name: {file.metadata.courseName || "Unknown"}
-                </p>
+                <p className="text-gray-500 text-sm">Year: {file.metadata.year}</p>
+                <p className="text-gray-500 text-sm">Branch: {file.metadata.branch}</p>
+                <p className="text-gray-500 text-sm">Course Name: {file.metadata.courseName || "Unknown"}</p>
                 <p className="text-gray-500 text-sm">
                   Uploaded on: {new Date(file.uploadDate).toLocaleString()}
                 </p>
-                <p className="text-gray-500 text-sm">
-                  File Size: {file.length} bytes
-                </p>
+                <p className="text-gray-500 text-sm">File Size: {file.length} bytes</p>
 
                 <div className="mt-4 flex space-x-4">
                   <a
-                    href={`https://iiitkresources.onrender.com/api/uploads/${file.filename}`}
+                    href={`${apiUrl}/api/uploads/${file.filename}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center text-blue-500 underline hover:text-blue-700"
@@ -141,7 +142,7 @@ function Home() {
                   <a
                     onClick={() =>
                       window.open(
-                        `https://iiitkresources.onrender.com/api/uploads/${file.filename}`,
+                        `${apiUrl}/api/uploads/${file.filename}`,
                         "_blank"
                       )
                     }
