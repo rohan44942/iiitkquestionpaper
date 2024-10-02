@@ -2,8 +2,7 @@ const mongoose = require("mongoose");
 require("dotenv").config(); // Load .env file
 
 // Choose the appropriate MongoDB URL based on the environment
-const mongoapi =
-   process.env.MONGO_URL_ATLASH;
+const mongoapi = process.env.MONGO_URL_ATLASH;
 
 const connect = async () => {
   try {
