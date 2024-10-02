@@ -120,7 +120,7 @@ function Home() {
                     }
                     height={200}
                     width={200}
-                     onLoad={() => handleFileLoad(file._id)} 
+                    //  onLoad={() => handleFileLoad(file._id)} 
                   />
                 )}
               </div>
