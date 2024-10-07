@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 
 function Navbar() {
-  const { isAuthenticated } = useAuth0();
+  const { isAuthenticated, user } = useAuth0();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
@@ -13,10 +13,7 @@ function Navbar() {
       <div className="text-xl font-bold text-gray-700">Logo</div>
 
       {/* Toggle Button for Mobile */}
-      <button
-        className="text-gray-600 text-2xl md:hidden"
-        onClick={toggleMenu}
-      >
+      <button className="text-gray-600 text-2xl md:hidden" onClick={toggleMenu}>
         ☰
       </button>
 
@@ -48,15 +45,37 @@ function Navbar() {
           </NavLink>
         </li>
         <li>
+          <NavLink
+            to="/notes"
+            activeClassName="active-link"
+            className="text-gray-600 text-lg font-medium hover:text-red-500 "
+            onClick={toggleMenu}
+          >
+            Notes
+          </NavLink>
+        </li>
+        <li>
           {isAuthenticated ? (
-            <NavLink
-              to="/user"
-              activeClassName="active-link"
-              className="text-gray-600 text-lg font-medium hover:text-red-500 "
-              onClick={toggleMenu}
-            >
-              User
-            </NavLink>
+            user.email === "2021kucp1109@iiitkota.ac.in" ||
+            user.email === "2021kuec1066@iiitkota.ac.in" ? (
+              <NavLink
+                to="/admin"
+                activeClassName="active-link"
+                className="text-gray-600 text-lg font-medium hover:text-red-500 "
+                onClick={toggleMenu}
+              >
+                Admin
+              </NavLink>
+            ) : (
+              <NavLink
+                to="/user"
+                activeClassName="active-link"
+                className="text-gray-600 text-lg font-medium hover:text-red-500 "
+                onClick={toggleMenu}
+              >
+                User
+              </NavLink>
+            )
           ) : (
             <NavLink
               to="/login"

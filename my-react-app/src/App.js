@@ -6,9 +6,10 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./Pages/Login";
 import Upload from "./Pages/Upload";
 import About from "./Pages/About";
+import Notes from "./Pages/Notes";
+import Admin from "./Pages/Admin";
 
 const App = () => {
-
   return (
     <div>
       <Navbar />
@@ -17,7 +18,9 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/user" element={<Login />} />
         <Route path="/upload" element={<Upload />} />
-        <Route path ="about" element={<About/>}/>
+        <Route path="about" element={<About />} />
+        <Route path="/notes" element={<Notes />} />
+        <Route path ='/admin' element={<Admin/>}/>
         <Route path="*" element={<Error />} />
       </Routes>
     </div>
