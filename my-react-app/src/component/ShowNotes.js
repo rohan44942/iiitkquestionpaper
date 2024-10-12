@@ -21,7 +21,7 @@ function ShowNotes() {
     };
 
     fetchNotes();
-  }, []); // Empty dependency array means it runs once when component mounts
+  }, []); 
 
   // Filter notes based on selected criteria
   useEffect(() => {

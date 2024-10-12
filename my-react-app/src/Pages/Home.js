@@ -24,6 +24,7 @@ function Home() {
       } catch (err) {
         setError(err.message);
       } finally {
+        console.log(apiUrl);
         setIsLoading(false); // Set loading to false after fetching is done
       }
     };
@@ -88,7 +89,8 @@ function Home() {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-48">
-          <span className="loader">Loading files...</span> {/* Loading indicator */}
+          <span className="loader">Loading files...</span>{" "}
+          {/* Loading indicator */}
         </div>
       ) : filteredFiles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -120,7 +122,7 @@ function Home() {
                     }
                     height={200}
                     width={200}
-                    //  onLoad={() => handleFileLoad(file._id)} 
+                    //  onLoad={() => handleFileLoad(file._id)}
                   />
                 )}
               </div>
@@ -138,13 +140,21 @@ function Home() {
                 <p className="text-gray-500 text-sm">
                   Description: {file.metadata.description || "No description"}
                 </p>
-                <p className="text-gray-500 text-sm">Year: {file.metadata.year}</p>
-                <p className="text-gray-500 text-sm">Branch: {file.metadata.branch}</p>
-                <p className="text-gray-500 text-sm">Course Name: {file.metadata.courseName || "Unknown"}</p>
+                <p className="text-gray-500 text-sm">
+                  Year: {file.metadata.year}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  Branch: {file.metadata.branch}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  Course Name: {file.metadata.courseName || "Unknown"}
+                </p>
                 <p className="text-gray-500 text-sm">
                   Uploaded on: {new Date(file.uploadDate).toLocaleString()}
                 </p>
-                <p className="text-gray-500 text-sm">File Size: {file.length} bytes</p>
+                <p className="text-gray-500 text-sm">
+                  File Size: {file.length} bytes
+                </p>
 
                 <div className="mt-4 flex space-x-4">
                   <a

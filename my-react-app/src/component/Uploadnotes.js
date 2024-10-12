@@ -11,6 +11,7 @@ const UploadNotes = () => {
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
+    console.log(file);
   };
 
   const handleFileUpload = async () => {
@@ -82,6 +83,7 @@ const UploadNotes = () => {
         <div>
           <input
             type="file"
+            name="file"
             accept="application/pdf"
             onChange={handleFileChange}
           />
