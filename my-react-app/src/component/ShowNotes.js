@@ -6,12 +6,13 @@ function ShowNotes() {
   const [yearFilter, setYearFilter] = useState("");
   const [semesterFilter, setSemesterFilter] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("");
+  const apiurl = process.env.REACT_APP_API_URL;
 
   // Fetch notes from the backend
   useEffect(() => {
     const fetchNotes = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/upload/notes");
+        const response = await fetch(`${apiurl}/api/upload/notes`);
         const data = await response.json();
         setNotes(data);
         setFilteredNotes(data); // Initialize filtered notes with fetched data
