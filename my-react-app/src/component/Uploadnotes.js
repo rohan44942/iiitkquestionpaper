@@ -8,6 +8,7 @@ const UploadNotes = () => {
   const [branch, setBranch] = useState("");
   const [fileLink, setFileLink] = useState("");
   const [showMetaForm, setShowMetaForm] = useState(false);
+  const apiurl = process.env.REACT_APP_API_URL;
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -24,7 +25,7 @@ const UploadNotes = () => {
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://localhost:5000/api/upload", {
+      const response = await fetch(`${apiurl}/api/upload`, {
         // API route for file upload to Cloudinary
         method: "POST",
         body: formData,
@@ -51,7 +52,7 @@ const UploadNotes = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/api/upload/notes", {
+      const response = await fetch(`${apiurl}/api/upload/notes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
