@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 function Uploaddoc() {
-  const apiurl = "http://localhost:5000";
+  // const apiurl = "http://localhost:5000";
+  const apiurl = process.env.REACT_APP_API_URL;
   const initialState = null;
   const { user } = useAuth0();
   const [upload, setUpload] = useState(initialState);
