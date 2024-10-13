@@ -10,7 +10,13 @@ function Navbar() {
 
   return (
     <nav className="flex justify-between items-center py-4 px-6 bg-gray-100 shadow-lg">
-      <div className="text-xl font-bold text-gray-700">Logo</div>
+      <div className="text-xl font-bold text-gray-700 flex items-center">
+        <img
+          src="/logo.png" // Make sure the path is correct
+          alt="Logo"
+          className="h-16 w-auto" // Adjust height and keep aspect ratio
+        />
+      </div>
 
       {/* Toggle Button for Mobile */}
       <button
