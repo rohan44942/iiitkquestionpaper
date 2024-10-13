@@ -1,18 +1,20 @@
 import { useState } from "react";
 
 function Uploaddoc() {
+  // const apiurl = "https://iiitkresources.onrender.com";
   const apiurl = process.env.REACT_APP_API_URL;
   const initialState = null;
   const [upload, setUpload] = useState(initialState);
   const [preview, setPreview] = useState(null);
-  const [uploadSuccess, setUploadSuccess] = useState(false); // Track upload success
-  const [uploadedImageUrl, setUploadedImageUrl] = useState(null); // To store uploaded file's URL
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false); 
-  // New state variables for metadata inputs
-  const [year, setYear] = useState(""); // Year input
-  const [branch, setBranch] = useState(""); // Branch input
-  const [fileName, setFileName] = useState(""); // Name of the file
-  const [description, setDescription] = useState(""); // Description of the file
+
+  const [year, setYear] = useState("");
+  const [branch, setBranch] = useState("");
+  const [fileName, setFileName] = useState("");
+  const [description, setDescription] = useState("");
+  const [semester, setSemester] = useState("");
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
