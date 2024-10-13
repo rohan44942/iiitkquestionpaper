@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
@@ -5,9 +6,12 @@ const GridFsStorage = require("multer-gridfs-storage").GridFsStorage;
 const mongoose = require("mongoose");
 const { connect } = require("../backend/connectdb/connectdb");
 const path = require("path");
-require("dotenv").config();
+const dotenv = require("dotenv");
+const cloudinary = require("cloudinary").v2;
+const fileUpload = require("express-fileupload");
+dotenv.config({ path: ".env" });
 const mongoapi =
-  process.env.MONGO_URL_LOCAL_HOST || process.env.MONGO_URL_ATLASH;
+  "mongodb+srv://2021kucp1109:OkfIRMFSZpnuv1UI@cluster0.4brou.mongodb.net/iiitk_resources?retryWrites=true&w=majority&appName=Cluster0";
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -46,7 +50,7 @@ const upload = multer({ storage });
 app.post("/api/uploads", upload.single("image"), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: "No file uploaded!" });
 
-  const { year, branch, description, fileName } = req.body;
+  const { year, branch, description, fileName, status } = req.body;
   try {
     const filesCollection = mongoose.connection.db.collection("uploads.files");
 
@@ -58,7 +62,7 @@ app.post("/api/uploads", upload.single("image"), async (req, res) => {
           "metadata.branch": branch || "N/A",
           "metadata.description": description || "No description",
           "metadata.fileName": fileName || req.file.filename,
-          "metadata.courseName": fileName || req.file.filename,
+          "metadata.status": status || req.file.status,
         },
       }
     );
@@ -95,18 +99,151 @@ app.get("/api/uploads/:filename", async (req, res) => {
   }
 });
 
-// Route to fetch all files with metadata
-app.get("/api/uploads", async (req, res) => {
+// Route to fetch all files with metadata those have status as accepted
+app.get("/api/uploads/", async (req, res) => {
   try {
+    // Fetch only files where metadata.status is "accepted"
     const files = await mongoose.connection.db
       .collection("uploads.files")
-      .find()
+      .find({ "metadata.status": "accepted" }) // Add the constraint here
       .toArray();
-    if (!files.length)
+    
+    // Check if any files were found
+    if (!files.length) {
       return res.status(404).json({ message: "No files found!" });
+    }
+    
+    // Return the found files
     res.json(files);
   } catch (err) {
     res.status(500).json({ message: "Error fetching files", error: err });
+  }
+});
+
+
+// now get the data in the admin page using the pending ,
+// accepted will be taken directly to the home page and decline will the file from the data base
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || dlmypwh71,
+  api_key: process.env.CLOUDINARY_API_KEY || 142613153773972,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// creating the schema
+const noteSchema = new mongoose.Schema({
+  subjectName: String,
+  year: String,
+  semester: String,
+  branch: String,
+  fileLink: String,
+});
+
+const Note = mongoose.model("Note", noteSchema);
+app.post("/api/upload", fileUpload({ useTempFiles: true }), (req, res) => {
+  const file = req.files.file;
+  console.log(file, file.tempFilePath);
+  cloudinary.uploader.upload(file.tempFilePath, (error, result) => {
+    if (error) {
+      console.error("Error uploading to Cloudinary:", error);
+      return res.status(500).send("Cloudinary upload failed.");
+    }
+
+    return res.json({ secure_url: result.secure_url });
+  });
+});
+
+// Error handling middleware to capture errors
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("Something broke!");
+});
+
+app.post("/api/upload/notes", async (req, res) => {
+  const { subjectName, year, semester, branch, fileLink } = req.body;
+
+  try {
+    const newNote = new Note({
+      subjectName,
+      year,
+      semester,
+      branch,
+      fileLink,
+    });
+
+    await newNote.save();
+    res.status(200).json({ message: "Note uploaded successfully!" });
+  } catch (error) {
+    res.status(500).json({ message: "Error saving note", error });
+  }
+});
+
+// get from the notes data base
+app.get("/api/upload/notes", async (req, res) => {
+  try {
+    const notes = await Note.find(); // Fetch all notes
+    res.json(notes); // Send notes as JSON
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+app.get("/api/uploads/status/pending", async (req, res) => {
+  try {
+    const files = await mongoose.connection.db
+      .collection("uploads.files")
+      .find({ "metadata.status": "pending" }) // Query for files with status "pending"
+      .toArray(); // Convert the cursor to an array of files
+
+    res.status(200).json(files); // Send the files as a JSON response
+  } catch (error) {
+    console.error("Error fetching pending uploads:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+const { ObjectId } = require("mongodb"); // Import ObjectId for working with MongoDB IDs
+
+app.delete("/api/uploads/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+      bucketName: "uploads",
+    });
+
+    // Delete the file and its chunks by ID
+    await bucket.delete(new ObjectId(id));
+
+    res
+      .status(200)
+      .json({ message: "Upload declined and deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting upload:", error);
+    res.status(500).json({ error: "Failed to delete upload" });
+  }
+});
+
+app.put("/api/uploads/status/accept/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await mongoose.connection.db
+      .collection("uploads.files")
+      .findOneAndUpdate(
+        { _id: new ObjectId(id) }, // Find the file by its ID
+        { $set: { "metadata.status": "accepted" } }, // Update the metadata status to "accepted"
+        { returnOriginal: false } // Return the updated document
+      );
+
+    if (!result.value) {
+      return res.status(404).json({ error: "Upload not found" });
+    }
+
+    res.status(200).json(result.value); // Send the updated file data
+  } catch (error) {
+    console.error("Error accepting upload:", error);
+    res.status(500).json({ error: "Failed to accept upload" });
   }
 });
 
