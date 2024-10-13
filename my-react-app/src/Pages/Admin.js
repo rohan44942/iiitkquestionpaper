@@ -75,9 +75,11 @@ function Admin() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen p-6">
+    <div className="bg-gray-50 pt-20 min-h-screen p-6">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Admin Dashboard</h1>
-      <div className="flex justify-between items-center mb-4">
+      
+      {/* Flex between Profile and LogoutButton */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0 md:space-x-4">
         <Profile />
         <LogoutButton />
       </div>
@@ -88,27 +90,35 @@ function Admin() {
       ) : (
         <ul className="space-y-6">
           {pendingUploads.map((upload) => (
-            <li key={upload._id} className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-xl font-semibold text-gray-800">{upload.fileName}</h3>
-              <p className="text-gray-600">
-                <strong>Status:</strong> {upload.metadata.status}
-              </p>
-              <p className="text-gray-600">
-                <strong>Upload Date:</strong> {new Date(upload.uploadDate).toLocaleDateString()}
-              </p>
-              <p className="text-gray-600">
-                <strong>Size:</strong> {(upload.length / 1024).toFixed(2)} KB
-              </p>
-              <p className="text-gray-600">
-                <strong>Content Type:</strong> {upload.contentType}
-              </p>
+            <li 
+              key={upload._id} 
+              className="bg-white rounded-lg shadow-lg p-6 flex flex-col lg:flex-row items-center lg:items-start space-y-4 lg:space-y-0 lg:space-x-6"
+            >
+              {/* File details */}
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-gray-800">{upload.fileName}</h3>
+                <p className="text-gray-600">
+                  <strong>Status:</strong> {upload.metadata.status}
+                </p>
+                <p className="text-gray-600">
+                  <strong>Upload Date:</strong> {new Date(upload.uploadDate).toLocaleDateString()}
+                </p>
+                <p className="text-gray-600">
+                  <strong>Size:</strong> {(upload.length / 1024).toFixed(2)} KB
+                </p>
+                <p className="text-gray-600">
+                  <strong>Content Type:</strong> {upload.contentType}
+                </p>
 
-              <div className="mt-4">
-                <strong>Preview:</strong>
-                <div className="mt-2">{renderPreview(upload)}</div>
+                {/* Preview of file */}
+                <div className="mt-4">
+                  <strong>Preview:</strong>
+                  <div className="mt-2">{renderPreview(upload)}</div>
+                </div>
               </div>
 
-              <div className="mt-4 flex justify-end space-x-4">
+              {/* Accept and Decline buttons */}
+              <div className="flex lg:flex-col space-x-4 lg:space-x-0 lg:space-y-4">
                 <button
                   onClick={() => acceptUpload(upload._id)}
                   className="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 transition duration-300"
