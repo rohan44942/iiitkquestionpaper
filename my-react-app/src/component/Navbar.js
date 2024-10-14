@@ -9,32 +9,28 @@ function Navbar() {
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
   return (
-    <nav className="flex justify-between items-center py-4 px-6 bg-gray-100 shadow-lg">
-      <div className="text-xl font-bold text-gray-700 flex items-center">
-        <img
-          src="/logo.png" // Make sure the path is correct
-          alt="Logo"
-          className="h-16 w-auto" // Adjust height and keep aspect ratio
-        />
-      </div>
+    <nav className="fixed top-0 left-0 w-screen flex justify-between items-center py-4 px-6 bg-gray-100 shadow-lg z-50">
+      <NavLink exact to="/">
+        <div className="text-xl font-bold text-gray-700">Log.oO</div>
+      </NavLink>
 
-      {/* Toggle Button for Mobile */}
       <button className="text-gray-600 text-2xl md:hidden" onClick={toggleMenu}>
         ☰
       </button>
 
-      {/* Menu Items */}
       <ul
-        className={`flex-col md:flex-row md:flex md:items-center gap-8 pr-14 absolute md:static left-0 right-0 bg-gray-100 md:bg-transparent w-full md:w-auto transition-transform duration-300 ease-in-out ${
-          menuOpen ? "top-16 flex justify-center items-center" : "-top-full"
-        } md:top-auto`}
+        className={`md:flex md:items-center gap-8 absolute md:static top-16 right-0 bg-gray-100 md:bg-transparent transition-transform duration-300 ease-in-out ${
+          menuOpen
+            ? "flex flex-col justify-center  items-center right-0 w-screen "
+            : "hidden"
+        } md:flex-row md:w-auto`}
       >
         <li>
           <NavLink
             exact
             to="/"
             activeClassName="active-link"
-            className="text-gray-600 text-lg font-medium hover:text-red-500 "
+            className="block text-gray-600 text-lg font-medium hover:text-red-500"
             onClick={toggleMenu}
           >
             Home
@@ -44,7 +40,7 @@ function Navbar() {
           <NavLink
             to="/about"
             activeClassName="active-link"
-            className="text-gray-600 text-lg font-medium hover:text-red-500 "
+            className="block text-gray-600 text-lg font-medium hover:text-red-500"
             onClick={toggleMenu}
           >
             About
@@ -54,7 +50,7 @@ function Navbar() {
           <NavLink
             to="/notes"
             activeClassName="active-link"
-            className="text-gray-600 text-lg font-medium hover:text-red-500 "
+            className="block text-gray-600 text-lg font-medium hover:text-red-500"
             onClick={toggleMenu}
           >
             Notes
@@ -63,11 +59,11 @@ function Navbar() {
         <li>
           {isAuthenticated ? (
             user.email === "2021kucp1109@iiitkota.ac.in" ||
-            user.email === "2021kuec1066@iiitkota.ac.in" ? (
+            user.email === "2021kuec2066@iiitkota.ac.in" ? (
               <NavLink
                 to="/admin"
                 activeClassName="active-link"
-                className="text-gray-600 text-lg font-medium hover:text-red-500 "
+                className="block text-gray-600 text-lg font-medium hover:text-red-500"
                 onClick={toggleMenu}
               >
                 Admin
@@ -76,7 +72,7 @@ function Navbar() {
               <NavLink
                 to="/user"
                 activeClassName="active-link"
-                className="text-gray-600 text-lg font-medium hover:text-red-500 "
+                className="block text-gray-600 text-lg font-medium hover:text-red-500"
                 onClick={toggleMenu}
               >
                 User
@@ -86,7 +82,7 @@ function Navbar() {
             <NavLink
               to="/login"
               activeClassName="active-link"
-              className="text-gray-600 text-lg font-medium hover:text-red-500 "
+              className="block text-gray-600 text-lg font-medium hover:text-red-500"
               onClick={toggleMenu}
             >
               Login
@@ -98,7 +94,7 @@ function Navbar() {
             <NavLink
               to="/upload"
               activeClassName="active-link"
-              className="text-gray-600 text-lg font-medium hover:text-red-500 "
+              className="block text-gray-600 text-lg font-medium hover:text-red-500"
               onClick={toggleMenu}
             >
               Upload
@@ -109,7 +105,7 @@ function Navbar() {
             <NavLink
               to="/login"
               activeClassName="active-link"
-              className="text-gray-600 text-lg font-medium hover:text-red-500 "
+              className="block text-gray-600 text-lg font-medium hover:text-red-500 "
               onClick={toggleMenu}
             >
               Upload
