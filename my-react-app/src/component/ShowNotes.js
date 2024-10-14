@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 function ShowNotes() {
   const [notes, setNotes] = useState([]);
@@ -6,38 +6,62 @@ function ShowNotes() {
   const [yearFilter, setYearFilter] = useState("");
   const [semesterFilter, setSemesterFilter] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const notesPerPage = 10; // Define how many notes to load per page
   const apiurl = process.env.REACT_APP_API_URL;
+  const observerRef = useRef();
 
-  // Fetch notes from the backend
-  useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        const response = await fetch(`${apiurl}/api/upload/notes`);
-        const data = await response.json();
-        setNotes(data);
-        setFilteredNotes(data); // Initialize filtered notes with fetched data
-      } catch (error) {
-        console.error("Error fetching notes:", error);
+  const fetchNotes = async () => {
+    if (loading || !hasMore) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${apiurl}/api/upload/notes?page=${currentPage}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-    };
+      
+      const data = await response.json();
 
-    fetchNotes();
-  }, []); 
+      if (!Array.isArray(data.notes)) {
+        console.error("Expected notes to be an array but got:", data.notes);
+        setHasMore(false);
+        return;
+      }
+      
+      if (data.notes.length < notesPerPage) {
+        setHasMore(false);
+      }
+      
+      setNotes((prevNotes) => [...prevNotes, ...data.notes]);
+      setFilteredNotes((prevNotes) => [...prevNotes, ...data.notes]);
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Filter notes based on selected criteria
   useEffect(() => {
-    let filtered = notes;
+    fetchNotes();
+  }, [currentPage, apiurl]);
+
+  useEffect(() => {
+    let filtered = notes.filter((note) => note.status === "accepted"); // Filter by status
 
     if (yearFilter) {
-      filtered = filtered.filter(note => note.year === yearFilter);
+      filtered = filtered.filter((note) => note.year === yearFilter);
     }
 
     if (semesterFilter) {
-      filtered = filtered.filter(note => note.semester === semesterFilter);
+      filtered = filtered.filter((note) => note.semester === semesterFilter);
     }
 
     if (subjectFilter) {
-      filtered = filtered.filter(note =>
+      filtered = filtered.filter((note) =>
         note.subjectName.toLowerCase().includes(subjectFilter.toLowerCase())
       );
     }
@@ -45,16 +69,37 @@ function ShowNotes() {
     setFilteredNotes(filtered);
   }, [yearFilter, semesterFilter, subjectFilter, notes]);
 
+  const handleScroll = (entries) => {
+    const target = entries[0];
+    if (target.isIntersecting && !loading) {
+      setTimeout(() => {
+        setCurrentPage((prev) => prev + 1);
+      }, 1000); // Delay before fetching more notes
+    }
+  };
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(handleScroll);
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observer.unobserve(observerRef.current);
+      }
+    };
+  }, [loading]);
+
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="pt-20 max-w-3xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Notes</h2>
 
-      {/* Filters */}
       <div className="mb-4">
         <select
           value={yearFilter}
           onChange={(e) => setYearFilter(e.target.value)}
-          className="mr-2"
+          className="mr-2 border-gray-400 border-[0.01rem] rounded-md p-2"
         >
           <option value="">Select Year</option>
           <option value="1st Year">1st Year</option>
@@ -66,7 +111,7 @@ function ShowNotes() {
         <select
           value={semesterFilter}
           onChange={(e) => setSemesterFilter(e.target.value)}
-          className="mr-2"
+          className="mr-2 border-gray-400 border-[0.01rem] rounded-md p-2"
         >
           <option value="">Select Semester</option>
           <option value="1st Sem">1st Sem</option>
@@ -78,7 +123,7 @@ function ShowNotes() {
           value={subjectFilter}
           onChange={(e) => setSubjectFilter(e.target.value)}
           placeholder="Search by Subject Name"
-          className="border p-2 rounded"
+          className="border p-2 rounded md: mt-3"
         />
       </div>
 
@@ -113,6 +158,10 @@ function ShowNotes() {
           ))}
         </ul>
       )}
+
+      {loading && <p className="text-center">Loading more notes...</p>}
+
+      <div ref={observerRef} className="h-1" />
     </div>
   );
 }
