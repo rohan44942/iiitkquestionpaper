@@ -15,7 +15,7 @@ function Login() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center w-screen h-screen bg-light-cream">
+    <div className="flex pt-20 flex-col items-center justify-center w-screen h-screen bg-light-cream">
       {isAuthenticated ? (
         <div className="flex flex-col items-center justify-center space-y-4">
           {" "}
@@ -24,7 +24,7 @@ function Login() {
           <LogoutButton />
         </div>
       ) : (
-        <div className="flex flex-col justify-center items-center bg-white p-10 mb-60 rounded shadow-xl">
+        <div className="flex flex-col justify-center items-center bg-white p-10 mb-60 rounded shadow-xl mx-6 ">
           <h1 className="text-black text-2xl mb-6 text-center">
             After login, you can upload data and mark your favorite question
             papers and notes.

@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
@@ -100,26 +99,43 @@ app.get("/api/uploads/:filename", async (req, res) => {
 });
 
 // Route to fetch all files with metadata those have status as accepted
+// Route to fetch all files with metadata those have status as accepted
 app.get("/api/uploads/", async (req, res) => {
+  const { year, branch, page = 1, limit = 10 } = req.query; // Accept page and limit
+  const skip = (page - 1) * limit; // Calculate how many items to skip
+
   try {
-    // Fetch only files where metadata.status is "accepted"
+    // Create a filter based on year and branch
+    const filter = { "metadata.status": "accepted" }; // Default filter
+
+    if (year) {
+      filter["metadata.year"] = year;
+    }
+    if (branch) {
+      filter["metadata.branch"] = branch;
+    }
+
     const files = await mongoose.connection.db
       .collection("uploads.files")
-      .find({ "metadata.status": "accepted" }) // Add the constraint here
+      .find(filter)
+      .skip(skip) // Skip items based on pagination
+      .limit(parseInt(limit)) // Limit the number of items returned
       .toArray();
-    
-    // Check if any files were found
-    if (!files.length) {
-      return res.status(404).json({ message: "No files found!" });
-    }
-    
-    // Return the found files
-    res.json(files);
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching files", error: err });
+
+    const totalFiles = await mongoose.connection.db
+      .collection("uploads.files")
+      .countDocuments(filter); // Get total count for pagination
+
+    res.status(200).json({
+      files,
+      totalFiles, // Send total files count
+      currentPage: page,
+      totalPages: Math.ceil(totalFiles / limit),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error querying the files", error });
   }
 });
-
 
 // now get the data in the admin page using the pending ,
 // accepted will be taken directly to the home page and decline will the file from the data base
@@ -137,6 +153,7 @@ const noteSchema = new mongoose.Schema({
   semester: String,
   branch: String,
   fileLink: String,
+  status: String,
 });
 
 const Note = mongoose.model("Note", noteSchema);
@@ -160,8 +177,8 @@ app.use((err, req, res, next) => {
 });
 
 app.post("/api/upload/notes", async (req, res) => {
-  const { subjectName, year, semester, branch, fileLink } = req.body;
-
+  const { subjectName, year, semester, branch, fileLink, status } = req.body;
+  console.log("this is status and year", status, year);
   try {
     const newNote = new Note({
       subjectName,
@@ -169,6 +186,7 @@ app.post("/api/upload/notes", async (req, res) => {
       semester,
       branch,
       fileLink,
+      status,
     });
 
     await newNote.save();
@@ -181,26 +199,56 @@ app.post("/api/upload/notes", async (req, res) => {
 // get from the notes data base
 app.get("/api/upload/notes", async (req, res) => {
   try {
-    const notes = await Note.find(); // Fetch all notes
-    res.json(notes); // Send notes as JSON
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server Error" });
+    const { page = 1, year, semester, subject, status } = req.query;
+    console.log(status, year);
+    const limit = 20; // Number of notes per page
+    const skip = (page - 1) * limit;
+
+    const filter = {  };
+    if (status === "accepted") {
+      filter["metadata.status"] = "accepted"; 
+    }
+
+    if (year) {
+      filter.year = year;
+    }
+    if (semester) {
+      filter.semester = semester;
+    }
+    if (subject) {
+      filter.subjectName = { $regex: subject, $options: "i" };
+    }
+
+    // Fetch notes from MongoDB
+    const notes = await Note.find(filter).skip(skip).limit(limit);
+    const totalNotes = await Note.countDocuments(filter);
+
+    res.json({
+      notes,
+      totalPages: Math.ceil(totalNotes / limit), // Calculate total pages
+      currentPage: parseInt(page),
+    });
+  } catch (error) {
+    console.error("Error fetching notes:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
+
 app.get("/api/uploads/status/pending", async (req, res) => {
   try {
+    console.log("Fetching files with pending status...");
     const files = await mongoose.connection.db
       .collection("uploads.files")
-      .find({ "metadata.status": "pending" }) // Query for files with status "pending"
-      .toArray(); // Convert the cursor to an array of files
-
-    res.status(200).json(files); // Send the files as a JSON response
+      .find({ "metadata.status": "pending" })
+      .toArray();
+    console.log("Files found:", files);
+    res.status(200).json(files);
   } catch (error) {
     console.error("Error fetching pending uploads:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 const { ObjectId } = require("mongodb"); // Import ObjectId for working with MongoDB IDs
 
