@@ -1,39 +1,71 @@
-import React, { useState } from "react";
+import React, { useReducer } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+
+const initialState = {
+  file: null,
+  subjectName: "",
+  year: "",
+  semester: "",
+  branch: "",
+  fileLink: "",
+  showMetaForm: false,
+  isUploading: false,
+  status: "pending",
+};
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "SET_FILE":
+      return {
+        ...state,
+        file: action.payload,
+        fileLink: "",
+        showMetaForm: false,
+      };
+    case "SET_SUBJECT_NAME":
+      return { ...state, subjectName: action.payload };
+    case "SET_YEAR":
+      return { ...state, year: action.payload };
+    case "SET_SEMESTER":
+      return { ...state, semester: action.payload };
+    case "SET_BRANCH":
+      return { ...state, branch: action.payload };
+    case "SET_FILE_LINK":
+      return { ...state, fileLink: action.payload, showMetaForm: true };
+    case "SET_UPLOADING":
+      return { ...state, isUploading: action.payload };
+    case "RESET":
+      return initialState;
+    default:
+      return state;
+  }
+};
 
 const UploadNotes = () => {
   const { user } = useAuth0();
-  const [file, setFile] = useState(null);
-  const [subjectName, setSubjectName] = useState("");
-  const [year, setYear] = useState("");
-  const [semester, setSemester] = useState("");
-  const [branch, setBranch] = useState("");
-  const [fileLink, setFileLink] = useState("");
-  const [showMetaForm, setShowMetaForm] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [status, setStatus] = useState("pending");
+  const [state, dispatch] = useReducer(reducer, initialState);
   const apiurl = process.env.REACT_APP_API_URL;
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-    setFileLink("");
+    dispatch({ type: "SET_FILE", payload: e.target.files[0] });
   };
 
   const handleFileUpload = async () => {
-    if (!file) {
+    if (!state.file) {
       alert("Please select a file!");
       return;
     }
-    console.log(user);
-    
+
+    dispatch({ type: "SET_UPLOADING", payload: true });
+
     const isAdmin =
-        user.email === process.env.REACT_APP_ADMIN1 ||
-        user.email === process.env.REACT_APP_ADMIN2;
-        setStatus(isAdmin ? "accepted" : "pending");
-        
+      user.email === process.env.REACT_APP_ADMIN1 ||
+      user.email === process.env.REACT_APP_ADMIN2;
+    const status = isAdmin ? "accepted" : "pending";
+    dispatch({ type: "SET_UPLOADING", payload: status });
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", state.file);
 
     try {
       const response = await fetch(`${apiurl}/api/upload/link`, {
@@ -42,27 +74,26 @@ const UploadNotes = () => {
       });
 
       const data = await response.json();
-      setFileLink(data.secure_url);
-      setShowMetaForm(true);
+      dispatch({ type: "SET_FILE_LINK", payload: data.secure_url });
     } catch (error) {
       console.error("Error uploading file:", error);
       alert("File upload failed!");
     } finally {
-      setIsUploading(false);
+      dispatch({ type: "SET_UPLOADING", payload: false });
     }
   };
 
   const handleMetaSubmit = async (e) => {
     e.preventDefault();
 
-    setIsUploading(true);
+    dispatch({ type: "SET_UPLOADING", payload: true });
     const metadata = {
-      subjectName,
-      year,
-      semester,
-      branch,
-      fileLink,
-      status,
+      subjectName: state.subjectName,
+      year: state.year,
+      semester: state.semester,
+      branch: state.branch,
+      fileLink: state.fileLink,
+      status: state.status,
     };
 
     try {
@@ -75,14 +106,8 @@ const UploadNotes = () => {
       });
 
       if (response.ok) {
-        
         alert("Notes uploaded successfully!");
-        setSubjectName("");
-        setYear("");
-        setSemester("");
-        setBranch("");
-        setFileLink("");
-        setShowMetaForm(false);
+        dispatch({ type: "RESET" });
       } else {
         alert("Error uploading notes!");
       }
@@ -90,14 +115,14 @@ const UploadNotes = () => {
       console.error("Error submitting metadata:", error);
       alert("Metadata submission failed!");
     }
-    setIsUploading(false);
+    dispatch({ type: "SET_UPLOADING", payload: false });
   };
 
   return (
     <div className="p-6 max-w-lg mx-auto">
       <h2 className="text-2xl font-bold mb-4">Upload Notes</h2>
 
-      {!showMetaForm ? (
+      {!state.showMetaForm ? (
         <div className="bg-white shadow-lg p-6 rounded-md">
           <input
             type="file"
@@ -108,14 +133,18 @@ const UploadNotes = () => {
           />
           <button
             onClick={handleFileUpload}
-            disabled={isUploading || fileLink}
+            disabled={state.isUploading || state.fileLink}
             className={`w-full ${
-              isUploading || fileLink
+              state.isUploading || state.fileLink
                 ? "bg-green-500 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600"
-            } text-white rounded-md py-2 font-semibold`}
+            } text-white rounded-md py-2 font-semibold transition duration-300`}
           >
-            {isUploading ? "Uploading..." : fileLink ? "Uploaded" : "Upload"}
+            {state.isUploading
+              ? "Uploading..."
+              : state.fileLink
+              ? "Uploaded"
+              : "Upload"}
           </button>
         </div>
       ) : (
@@ -129,8 +158,10 @@ const UploadNotes = () => {
             </label>
             <input
               type="text"
-              value={subjectName}
-              onChange={(e) => setSubjectName(e.target.value)}
+              value={state.subjectName}
+              onChange={(e) =>
+                dispatch({ type: "SET_SUBJECT_NAME", payload: e.target.value })
+              }
               className="w-full border border-gray-300 p-2 rounded-md"
               required
             />
@@ -140,8 +171,10 @@ const UploadNotes = () => {
               Year:
             </label>
             <select
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
+              value={state.year}
+              onChange={(e) =>
+                dispatch({ type: "SET_YEAR", payload: e.target.value })
+              }
               className="w-full border border-gray-300 p-2 rounded-md"
               required
             >
@@ -157,8 +190,10 @@ const UploadNotes = () => {
               Semester:
             </label>
             <select
-              value={semester}
-              onChange={(e) => setSemester(e.target.value)}
+              value={state.semester}
+              onChange={(e) =>
+                dispatch({ type: "SET_SEMESTER", payload: e.target.value })
+              }
               className="w-full border border-gray-300 p-2 rounded-md"
               required
             >
@@ -172,8 +207,10 @@ const UploadNotes = () => {
               Branch:
             </label>
             <select
-              value={branch}
-              onChange={(e) => setBranch(e.target.value)}
+              value={state.branch}
+              onChange={(e) =>
+                dispatch({ type: "SET_BRANCH", payload: e.target.value })
+              }
               className="w-full border border-gray-300 p-2 rounded-md"
               required
             >
@@ -185,7 +222,7 @@ const UploadNotes = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 font-semibold"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 font-semibold transition duration-300"
           >
             Submit Metadata
           </button>
