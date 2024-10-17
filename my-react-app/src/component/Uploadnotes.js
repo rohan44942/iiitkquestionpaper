@@ -24,10 +24,14 @@ const UploadNotes = () => {
       alert("Please select a file!");
       return;
     }
-    user.email === process.env.REACT_APP_ADMIN1 ||
-    user.email === process.env.REACT_APP_ADMIN2
-      ? setStatus("accepted")
-      : setStatus("pending");
+    console.log(user);
+    
+    const isAdmin =
+        user.email === process.env.REACT_APP_ADMIN1 ||
+        user.email === process.env.REACT_APP_ADMIN2;
+        setStatus(isAdmin ? "accepted" : "pending");
+        
+
     const formData = new FormData();
     formData.append("file", file);
 
@@ -71,6 +75,7 @@ const UploadNotes = () => {
       });
 
       if (response.ok) {
+        
         alert("Notes uploaded successfully!");
         setSubjectName("");
         setYear("");

@@ -219,7 +219,7 @@ function ShowNotes() {
   }, [currentPage]);
 
   useEffect(() => {
-    let filtered = notes;
+    let filtered = notes.filter((note) => note.status === "accepted"); // Filter by status
 
     if (yearFilter) {
       filtered = filtered.filter((note) => note.year === yearFilter);
