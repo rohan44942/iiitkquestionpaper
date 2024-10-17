@@ -24,7 +24,6 @@ const UploadNotes = () => {
       alert("Please select a file!");
       return;
     }
-    console.log(user);
     
     const isAdmin =
         user.email === process.env.REACT_APP_ADMIN1 ||
