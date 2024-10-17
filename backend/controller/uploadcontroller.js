@@ -132,7 +132,6 @@ const getByFileName = async (req, res) => {
 // cloudinary upload
 const getLinkFromCloudinary = (req, res) => {
   const file = req.files.file;
-  console.log(file, file.tempFilePath);
   cloudinary.uploader.upload(file.tempFilePath, (error, result) => {
     if (error) {
       console.error("Error uploading to Cloudinary:", error);
@@ -145,7 +144,6 @@ const getLinkFromCloudinary = (req, res) => {
 // upload notes to mongo
 const uploadNotes = async (req, res) => {
   const { subjectName, year, semester, branch, fileLink, status } = req.body;
-  console.log("this is status and year", typeof Note);
   try {
     const newNote = new Note({
       subjectName,
@@ -167,7 +165,6 @@ const uploadNotes = async (req, res) => {
 const getUplodedNotes = async (req, res) => {
   try {
     const { page = 1, year, semester, subject, status } = req.query;
-    console.log(status, year);
     const limit = 20; // Number of notes per page
     const skip = (page - 1) * limit;
 
@@ -227,85 +224,13 @@ const getPendingExamFile = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-// delete item
-// const deleteItems = async (req, res) => {
-//   const { id } = req.params;
 
-//   try {
-//     const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-//       bucketName: "uploads",
-//     });
-
-//     // Delete the file and its chunks by ID
-//     await bucket.delete(new ObjectId(id));
-
-//     res
-//       .status(200)
-//       .json({ message: "Upload declined and deleted successfully" });
-//   } catch (error) {
-//     console.error("Error deleting upload:", error);
-//     res.status(500).json({ error: "Failed to delete upload" });
-//   }
-// };
-// upload accepted fies by admin
-// const accpetedByAdmin = async (req, res) => {
-//   const { id } = req.params;
-
-//   try {
-//     const result = await mongoose.connection.db
-//       .collection("uploads.files")
-//       .findOneAndUpdate(
-//         { _id: new ObjectId(id) }, // Find the file by its ID
-//         { $set: { "metadata.status": "accepted" } }, // Update the metadata status to "accepted"
-//         { returnOriginal: false } // Return the updated document
-//       );
-
-//     if (!result.value) {
-//       return res.status(404).json({ error: "Upload not found" });
-//     }
-
-//     res.status(200).json(result.value); // Send the updated file data
-//   } catch (error) {
-//     console.error("Error accepting upload:", error);
-//     res.status(500).json({ error: "Failed to accept upload" });
-//   }
-// };
-// const declineNoteUpload = async (req, res) => {
-//   const { id, type } = req.params; // Get the ID and type (exam or note) from the route
-  
-  
-//   try {
-//     if (type === "exam") {
-//       console.log("hi");
-
-//       const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-//         bucketName: "uploads",
-//       });
-//       // Delete the exam file from GridFS (uploads collection)
-      
-//       await bucket.delete(new ObjectId(id));
-//       res.status(200).json({ message: "Exam paper declined and deleted." });
-//     } else if (type === "note") {
-//       // Delete the note from the 'notes' collection
-//       const result = await Note.findByIdAndDelete(id);
-//       if (!result) return res.status(404).json({ message: "Note not found!" });
-//       res.status(200).json({ message: "Note declined and deleted." });
-//     } else {
-//       res.status(400).json({ message: "Invalid type provided." });
-//     }
-//   } catch (error) {
-//     res.status(500).json({ message: "Error deleting the upload.", error });
-//   }
-// };
 const declineNoteUpload = async (req, res) => {
-  console.log('hi');
   
   const { id, type } = req.params; // Get the ID and type from the route
-  console.log(`Request Type: ${type}, Request ID: ${id}`); // Log the parameters
 
   try {
     if (type === "exam") {
-      console.log("Attempting to delete exam..."); // Log attempt
 
       const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
         bucketName: "uploads",
@@ -314,7 +239,6 @@ const declineNoteUpload = async (req, res) => {
       await bucket.delete(new ObjectId(id));
       res.status(200).json({ message: "Exam paper declined and deleted." });
     } else if (type === "notes") {
-      console.log("Attempting to delete note..."); // Log attempt
 
       const result = await Note.findByIdAndDelete(id);
       if (!result) return res.status(404).json({ message: "Note not found!" });
