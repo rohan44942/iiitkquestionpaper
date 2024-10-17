@@ -52,6 +52,7 @@ function Uploaddoc() {
         try {
           const response = await fetch(`${apiurl}/api/uploads`, {
             method: "POST",
+
             body: formData,
           });
 
@@ -62,7 +63,9 @@ function Uploaddoc() {
           }
 
           const data = await response.json();
-          console.log("Upload success, received data:", data);
+          console.log(data);
+
+          console.log("Upload success, received data:", data.metadata.branch);
 
           setUploadSuccess(true);
           setUploadedImageUrl(`${apiurl}/api/uploads/${data.file.filename}`); // Adjust to your backend response
@@ -78,7 +81,11 @@ function Uploaddoc() {
 
   return (
     <div className="flex flex-col justify-center items-center p-6">
-      <form onSubmit={handleSubmit} className="text-center mb-4">
+      <form
+        onSubmit={handleSubmit}
+        enctype="multipart/form-data"
+        className="text-center mb-4"
+      >
         <input
           type="file"
           name="image"
