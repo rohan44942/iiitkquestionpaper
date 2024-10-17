@@ -78,7 +78,7 @@ function Home() {
   return (
     <div className="bg-cream pt-20 min-h-screen p-6">
       <h1 className="text-3xl font-bold mb-6 text-center text-light-green">
-        IIITK Resource Files
+        IIITK Resource Hub
       </h1>
 
       <div className="flex flex-col md:flex-row justify-between mb-4 gap-2 ">
@@ -92,23 +92,10 @@ function Home() {
           className="border rounded-lg p-2 bg-white"
         >
           <option value="">All Years</option>
-          <option value="1st sem midterm">1st Sem Mid-Term</option>
-          <option value="1st sem endterm">1st Sem End-Term</option>
-          <option value="2nd sem midterm">2nd Sem Mid-Term</option>
-          <option value="2nd sem endterm">2nd Sem End-Term</option>
-          <option value="3rd sem midterm">3rd Sem Mid-Term</option>
-          <option value="3rd sem endterm">3rd Sem End-Term</option>
-          <option value="4th sem midterm">4th Sem Mid-Term</option>
-          <option value="4th sem endterm">4th Sem End-Term</option>
-          <option value="5th sem midterm">5th Sem Mid-Term</option>
-          <option value="5th sem endterm">5th Sem End-Term</option>
-          <option value="6th sem midterm">6th Sem Mid-Term</option>
-          <option value="6th sem endterm">6th Sem End-Term</option>
-          <option value="7th sem midterm">7th Sem Mid-Term</option>
-          <option value="7th sem endterm">7th Sem End-Term</option>
-          <option value="8th sem midterm">8th Sem Mid-Term</option>
-          <option value="8th sem endterm">8th Sem End-Term</option>
-          <option value="supplementary sem midterm">Supplementary</option>
+          <option value="first">1st</option>
+          <option value="second">2nd</option>
+          <option value="third">3rd</option>
+          <option value="fourth">4th</option>
         </select>
 
         <select
