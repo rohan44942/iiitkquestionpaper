@@ -21,7 +21,7 @@ function Navbar() {
       <ul
         className={`md:flex md:items-center gap-8 absolute md:static top-16 right-0 bg-gray-100 md:bg-transparent transition-transform duration-300 ease-in-out ${
           menuOpen
-            ? "flex flex-col justify-center  items-center right-0 w-screen "
+            ? "flex flex-col justify-center  items-center right-0 w-screen  pb-5 "
             : "hidden"
         } md:flex-row md:w-auto`}
       >

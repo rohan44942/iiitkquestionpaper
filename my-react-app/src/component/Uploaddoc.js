@@ -1,81 +1,130 @@
-import { useState } from "react";
+import { useReducer, useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+
+const initialState = {
+  upload: null,
+  preview: null,
+  uploadSuccess: false,
+  uploadedImageUrl: null,
+  year: "",
+  branch: "",
+  fileName: "",
+  description: "",
+  status: "pending",
+  isUploading: false,
+};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "SET_UPLOAD":
+      return { ...state, upload: action.payload };
+    case "SET_PREVIEW":
+      return { ...state, preview: action.payload };
+    case "SET_UPLOAD_SUCCESS":
+      return { ...state, uploadSuccess: action.payload };
+    case "SET_UPLOADED_IMAGE_URL":
+      return { ...state, uploadedImageUrl: action.payload };
+    case "SET_YEAR":
+      return { ...state, year: action.payload };
+    case "SET_BRANCH":
+      return { ...state, branch: action.payload };
+    case "SET_FILE_NAME":
+      return { ...state, fileName: action.payload };
+    case "SET_DESCRIPTION":
+      return { ...state, description: action.payload };
+    case "SET_STATUS":
+      return { ...state, status: action.payload };
+    case "SET_IS_UPLOADING":
+      return { ...state, isUploading: action.payload };
+    case "CLEAR_FORM_FIELDS":
+      return {
+        ...state,
+        upload: null,
+        preview: null,
+        year: "",
+        branch: "",
+        fileName: "",
+        description: "",
+      };
+    default:
+      return state;
+  }
+}
+
 function Uploaddoc() {
-  // const apiurl = "http://localhost:5000";
   const apiurl = process.env.REACT_APP_API_URL;
-  const initialState = null;
   const { user } = useAuth0();
-  const [upload, setUpload] = useState(initialState);
-  const [preview, setPreview] = useState(null);
-  const [uploadSuccess, setUploadSuccess] = useState(false); // Track upload success
-  const [uploadedImageUrl, setUploadedImageUrl] = useState(null); // To store uploaded file's URL
+  const [state, dispatch] = useReducer(reducer, initialState);
 
-  // New state variables for metadata inputs
-  const [year, setYear] = useState(""); // Year input
-  const [branch, setBranch] = useState(""); // Branch input
-  const [fileName, setFileName] = useState(""); // Name of the file
-  const [description, setDescription] = useState(""); // Description of the file
-  const [status, setStatus] = useState("pending");
-
+  // Handle image selection and preview
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    setUpload(file);
+    dispatch({ type: "SET_UPLOAD", payload: file });
 
     if (file) {
       const imagePreviewUrl = URL.createObjectURL(file);
-      setPreview(imagePreviewUrl);
+      dispatch({ type: "SET_PREVIEW", payload: imagePreviewUrl });
     } else {
-      setPreview(null);
+      dispatch({ type: "SET_PREVIEW", payload: null });
     }
   };
 
-  const handleSubmit = (e) => {
+  // Auto-clear success message after 3 seconds
+  useEffect(() => {
+    if (state.uploadSuccess) {
+      const timer = setTimeout(() => {
+        dispatch({ type: "SET_UPLOAD_SUCCESS", payload: false });
+      }, 3000);
+      return () => clearTimeout(timer); // Cleanup timer
+    }
+  }, [state.uploadSuccess]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    user.email === process.env.REACT_APP_ADMIN1 ||
-    user.email === process.env.REACT_APP_ADMIN2
-      ? setStatus("accepted")
-      : setStatus("pending");
-    if (upload) {
+    dispatch({
+      type: "SET_STATUS",
+      payload:
+        user.email === process.env.REACT_APP_ADMIN1 ||
+        user.email === process.env.REACT_APP_ADMIN2
+          ? "accepted"
+          : "pending",
+    });
+
+    if (state.upload) {
       const formData = new FormData();
-      formData.append("image", upload); // Image file
-      formData.append("fileName", fileName); // File name
-      formData.append("description", description); // Description
-      formData.append("year", year); // Year
-      formData.append("branch", branch); // Branch
-      formData.append("status", status);
+      formData.append("image", state.upload);
+      formData.append("fileName", state.fileName);
+      formData.append("description", state.description);
+      formData.append("year", state.year);
+      formData.append("branch", state.branch);
+      formData.append("status", state.status);
 
-      // Log the form data entries to confirm they are appended correctly
-      console.log("FormData:", Array.from(formData.entries()));
+      dispatch({ type: "SET_IS_UPLOADING", payload: true });
 
-      // Upload the image using fetch
-      async function uploadImage(formData) {
-        try {
-          const response = await fetch(`${apiurl}/api/uploads`, {
-            method: "POST",
+      try {
+        const response = await fetch(`${apiurl}/api/uploads`, {
+          method: "POST",
+          body: formData,
+        });
 
-            body: formData,
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error("Error response:", errorData);
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-
-          const data = await response.json();
-          console.log(data);
-
-          console.log("Upload success, received data:", data.metadata.branch);
-
-          setUploadSuccess(true);
-          setUploadedImageUrl(`${apiurl}/api/uploads/${data.file.filename}`); // Adjust to your backend response
-        } catch (error) {
-          console.error("Error uploading the file:", error);
-          setUploadSuccess(false);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
-      }
 
-      uploadImage(formData);
+        const data = await response.json();
+        dispatch({ type: "SET_UPLOAD_SUCCESS", payload: true });
+        dispatch({
+          type: "SET_UPLOADED_IMAGE_URL",
+          payload: `${apiurl}/api/uploads/${data.file.filename}`,
+        });
+
+        dispatch({ type: "CLEAR_FORM_FIELDS" });
+      } catch (error) {
+        console.error("Error uploading the file:", error);
+        dispatch({ type: "SET_UPLOAD_SUCCESS", payload: false });
+      } finally {
+        dispatch({ type: "SET_IS_UPLOADING", payload: false });
+      }
     }
   };
 
@@ -83,8 +132,8 @@ function Uploaddoc() {
     <div className="flex flex-col justify-center items-center p-6">
       <form
         onSubmit={handleSubmit}
-        enctype="multipart/form-data"
-        className="text-center mb-4"
+        encType="multipart/form-data"
+        className="text-center mb-4 w-full max-w-md"
       >
         <input
           type="file"
@@ -94,10 +143,9 @@ function Uploaddoc() {
           required
         />
 
-        {/* Input for Year */}
         <select
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
+          value={state.year}
+          onChange={(e) => dispatch({ type: "SET_YEAR", payload: e.target.value })}
           className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2 mb-4"
           required
         >
@@ -123,10 +171,9 @@ function Uploaddoc() {
           <option value="supplementary sem midterm">Supplementary</option>
         </select>
 
-        {/* Input for Branch */}
         <select
-          value={branch}
-          onChange={(e) => setBranch(e.target.value)}
+          value={state.branch}
+          onChange={(e) => dispatch({ type: "SET_BRANCH", payload: e.target.value })}
           className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2 mb-4"
           required
         >
@@ -138,20 +185,18 @@ function Uploaddoc() {
           <option value="ai">Artificial Intelligence</option>
         </select>
 
-        {/* Input for Name of File */}
         <input
           type="text"
-          value={fileName}
-          onChange={(e) => setFileName(e.target.value)}
+          value={state.fileName}
+          onChange={(e) => dispatch({ type: "SET_FILE_NAME", payload: e.target.value })}
           placeholder="Name of the File"
           className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2 mb-4"
           required
         />
 
-        {/* Input for Description */}
         <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          value={state.description}
+          onChange={(e) => dispatch({ type: "SET_DESCRIPTION", payload: e.target.value })}
           placeholder="Description of the File"
           className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2 mb-4"
           rows="3"
@@ -159,33 +204,34 @@ function Uploaddoc() {
 
         <button
           type="submit"
-          className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+          className={`bg-blue-600 text-white py-2 px-4 rounded-lg ${
+            state.isUploading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
+          }`}
+          disabled={state.isUploading}
         >
-          Submit
+          {state.isUploading ? "Uploading..." : "Submit"}
         </button>
       </form>
-      {uploadSuccess && uploadedImageUrl && (
+
+      {state.uploadSuccess && (
         <div className="mt-8 flex justify-center items-center flex-col">
           <h2 className="text-xl font-bold text-green-600 mb-4">
             Upload Successful!
           </h2>
-        </div>
-      )}
-      {preview && (
-        <div className="mt-4 flex justify-center items-center flex-col">
-          <h2 className="text-lg font-semibold mb-2">Image Preview</h2>
-          <img
-            src={preview}
-            alt="Selected"
-            className="w-64 h-64 object-cover border border-gray-300 shadow-lg rounded-lg"
-          />
+          <p className="text-sm text-gray-600">
+            Your file has been uploaded successfully.
+          </p>
         </div>
       )}
 
-      {/* Error handling: Show this message if something goes wrong */}
-      {!uploadSuccess && upload && (
-        <div className="text-red-100 mt-4">
-          Oops! Something went wrong during the upload.
+      {state.preview && (
+        <div className="mt-4 flex justify-center items-center flex-col">
+          <h2 className="text-lg font-semibold mb-2">Image Preview</h2>
+          <img
+            src={state.preview}
+            alt="Selected"
+            className="w-64 h-64 object-cover border border-gray-300 shadow-lg rounded-lg"
+          />
         </div>
       )}
     </div>
