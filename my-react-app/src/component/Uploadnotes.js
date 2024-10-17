@@ -32,7 +32,7 @@ const UploadNotes = () => {
     formData.append("file", file);
 
     try {
-      const response = await fetch(`${apiurl}/api/upload`, {
+      const response = await fetch(`${apiurl}/api/upload/link`, {
         method: "POST",
         body: formData,
       });

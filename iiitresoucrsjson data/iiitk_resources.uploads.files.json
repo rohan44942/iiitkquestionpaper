@@ -1,0 +1,164 @@
+[{
+  "_id": {
+    "$oid": "66fbf1e911dd394e9b6698d5"
+  },
+  "length": 540229,
+  "chunkSize": 261120,
+  "uploadDate": {
+    "$date": "2024-10-01T12:58:17.316Z"
+  },
+  "filename": "image_1727787497232.jpg",
+  "contentType": "image/jpeg",
+  "metadata": {
+    "branch": "cse",
+    "description": "sdfghjk",
+    "fileName": "testfile",
+    "year": "first"
+  }
+},
+{
+  "_id": {
+    "$oid": "66fbf27c11dd394e9b6698d9"
+  },
+  "length": 883050,
+  "chunkSize": 261120,
+  "uploadDate": {
+    "$date": "2024-10-01T13:00:45.000Z"
+  },
+  "filename": "image_1727787644940.jpg",
+  "contentType": "image/jpeg",
+  "metadata": {
+    "branch": "ece",
+    "description": "this is the second and third thing ",
+    "fileName": "filetest2",
+    "year": "second"
+  }
+},
+{
+  "_id": {
+    "$oid": "66fbf28b11dd394e9b6698de"
+  },
+  "length": 883050,
+  "chunkSize": 261120,
+  "uploadDate": {
+    "$date": "2024-10-01T13:00:59.949Z"
+  },
+  "filename": "image_1727787659922.jpg",
+  "contentType": "image/jpeg",
+  "metadata": {
+    "branch": "cse",
+    "description": "this is the second and third thing ",
+    "fileName": "firlename",
+    "year": "third"
+  }
+},
+{
+  "_id": {
+    "$oid": "66fbf29611dd394e9b6698e3"
+  },
+  "length": 883050,
+  "chunkSize": 261120,
+  "uploadDate": {
+    "$date": "2024-10-01T13:01:10.649Z"
+  },
+  "filename": "image_1727787670622.jpg",
+  "contentType": "image/jpeg",
+  "metadata": {
+    "branch": "ai",
+    "description": "this is the second and third thing ",
+    "fileName": "firlename",
+    "year": "third"
+  }
+},
+{
+  "_id": {
+    "$oid": "66fbf29c11dd394e9b6698e8"
+  },
+  "length": 883050,
+  "chunkSize": 261120,
+  "uploadDate": {
+    "$date": "2024-10-01T13:01:16.471Z"
+  },
+  "filename": "image_1727787676447.jpg",
+  "contentType": "image/jpeg",
+  "metadata": {
+    "branch": "ai",
+    "description": "this is the second and third thing ",
+    "fileName": "firlenamethird",
+    "year": "third"
+  }
+},
+{
+  "_id": {
+    "$oid": "66fd81a4094936e5639e1adc"
+  },
+  "length": 8746,
+  "chunkSize": 261120,
+  "uploadDate": {
+    "$date": "2024-10-02T17:23:48.739Z"
+  },
+  "filename": "image_1727889828540.png",
+  "contentType": "image/png",
+  "metadata": {
+    "branch": "ECE",
+    "description": "No description",
+    "fileName": "SDFGHJ",
+    "year": "first"
+  }
+},
+{
+  "_id": {
+    "$oid": "66fd89fdd6cacd7194991ee4"
+  },
+  "length": 57041,
+  "chunkSize": 261120,
+  "uploadDate": {
+    "$date": "2024-10-02T17:59:25.117Z"
+  },
+  "filename": "image_1727891965000.png",
+  "contentType": "image/png",
+  "metadata": {
+    "branch": "ECE",
+    "description": "dfbnm",
+    "fileName": "analog system",
+    "year": "6th sem midterm"
+  }
+},
+{
+  "_id": {
+    "$oid": "66fda4a2c9f72e6f0fdb7e16"
+  },
+  "length": 13901,
+  "chunkSize": 261120,
+  "uploadDate": {
+    "$date": "2024-10-02T19:53:06.705Z"
+  },
+  "filename": "image_1727898786499.png",
+  "contentType": "image/png",
+  "metadata": {
+    "branch": "ECE",
+    "courseName": "ok ",
+    "description": "cvbnm",
+    "fileName": "ok ",
+    "year": "1st sem endterm"
+  }
+},
+{
+  "_id": {
+    "$oid": "66fda4b5c9f72e6f0fdb7e18"
+  },
+  "length": 13901,
+  "chunkSize": 261120,
+  "uploadDate": {
+    "$date": "2024-10-02T19:53:25.660Z"
+  },
+  "filename": "image_1727898805641.png",
+  "contentType": "image/png",
+  "metadata": {
+    "branch": "ECE",
+    "courseName": "ok ",
+    "description": "cvbnm",
+    "fileName": "ok ",
+    "year": "1st sem endterm"
+  }
+}]
