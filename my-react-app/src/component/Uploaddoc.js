@@ -44,8 +44,6 @@ function Uploaddoc() {
       formData.append("branch", branch); // Branch
       formData.append("status", status);
 
-      // Log the form data entries to confirm they are appended correctly
-      console.log("FormData:", Array.from(formData.entries()));
 
       // Upload the image using fetch
       async function uploadImage(formData) {
@@ -63,7 +61,6 @@ function Uploaddoc() {
           }
 
           const data = await response.json();
-          console.log(data);
 
           console.log("Upload success, received data:", data.metadata.branch);
 
