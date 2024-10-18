@@ -17,6 +17,7 @@ const {
   declineNoteUpload,
   acceptNoteUpload,
   getPendingNotesFile,
+  downloadByFileName,
 } = require("../controller/uploadcontroller");
 
 // Use POST for uploads
@@ -33,6 +34,7 @@ router.put("/status/accept/:type/:id", acceptNoteUpload);
 // router.put("/status/accept/:id", accpetedByAdmin);
 // router.delete("/:id", deleteItems);
 // filenameke liye
+router.get("/download/:filename",attachGfs, downloadByFileName);
 router.get("/:filename", attachGfs, getByFileName); // this have some problem
 
 module.exports = router;

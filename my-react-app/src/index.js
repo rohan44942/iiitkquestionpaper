@@ -9,10 +9,13 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <Auth0Provider
     domain="dev-c7ap44czi23i7ka6.us.auth0.com"
-    clientId="rfSZVd2Iw8bjiJ8NMYvN4ss4Mdn0FkLC"
+    // clientId="rfSZVd2Iw8bjiJ8NMYvN4ss4Mdn0FkLC" // iiitkresourcesv2
+    clientId="tNoLJgic8eDGLWCIyhHAkqiPaoT4XGUQ" // local host 3000
     authorizationParams={{
       redirect_uri: window.location.origin,
     }}
+    useRefreshTokens={true}
+    cacheLocation="localstorage"
   >
     <Router>
       <App />

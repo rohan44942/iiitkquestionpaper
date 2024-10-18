@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { FaDownload, FaEye } from "react-icons/fa";
@@ -8,9 +8,10 @@ function Home() {
   const [error, setError] = useState(null);
   const [yearFilter, setYearFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Changed initial state to false
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const observerRef = useRef(); // Use ref to hold the observer
   const apiUrl = process.env.REACT_APP_API_URL;
 
   const fetchFiles = async (page) => {
@@ -31,31 +32,24 @@ function Home() {
     }
   };
 
-  // Infinite Scroll
+  // Infinite Scroll using Intersection Observer
   const observer = useCallback(
     (node) => {
-      if (isLoading || !hasMore) return; // Do nothing if still loading
-      const options = {
-        root: null,
-        rootMargin: "20px",
-        threshold: 1.0,
-      };
-
-      const handleIntersect = (entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          setCurrentPage((prev) => prev + 1); // Increase the page
+      if (isLoading || !hasMore) return; // Exit if still loading or no more data
+      if (observerRef.current) observerRef.current.disconnect(); // Disconnect previous observer
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMore) {
+            setCurrentPage((prevPage) => prevPage + 1); // Increase the page
+          }
+        },
+        {
+          root: null,
+          rootMargin: "20px",
+          threshold: 1.0,
         }
-      };
-
-      const observerInstance = new IntersectionObserver(
-        handleIntersect,
-        options
       );
-      if (node) observerInstance.observe(node);
-
-      return () => {
-        if (node) observerInstance.unobserve(node);
-      };
+      if (node) observerRef.current.observe(node); // Observe new node
     },
     [isLoading, hasMore]
   );
@@ -127,7 +121,7 @@ function Home() {
         </select>
       </div>
 
-      {isLoading ? (
+      {isLoading && currentPage === 1 ? (
         <div className="flex justify-center items-center h-48">
           <span className="loader">Loading files...</span>
         </div>
@@ -187,10 +181,11 @@ function Home() {
                   Branch: {file.metadata.branch}
                 </p>
                 <p className="text-gray-500 text-sm">
-                  Course Name: {file.metadata.courseName || "Unknown"}
+                  uploaded by: {file.metadata.uploadedBy || "A Helper"}
                 </p>
                 <p className="text-gray-500 text-sm">
-                  Uploaded on: {new Date(file.uploadDate).toLocaleString()}
+                  Uploaded on:{" "}
+                  {new Date(file.uploadDate).toLocaleDateString("en-CA")}
                 </p>
                 <p className="text-gray-500 text-sm">
                   File Size: {(file.length / 1000).toFixed(2)} Kb
@@ -198,15 +193,14 @@ function Home() {
 
                 <div className="mt-4 flex space-x-4">
                   <a
-                    href={`${apiUrl}/api/uploads/${file.filename}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={`${apiUrl}/api/download/${file.filename}`} // Changed to use the download route
                     className="flex items-center text-blue-500 hover:underline"
                   >
                     <FaDownload className="mr-1" /> Download
                   </a>
+
                   <a
-                    href={`${apiUrl}/api/uploads/${file.filename}`}
+                    href={`${apiUrl}/api/uploads/${file.filename}`} // Changed to use the preview route
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center text-blue-500 hover:underline"
@@ -220,6 +214,12 @@ function Home() {
         </div>
       ) : (
         <div className="text-center">No files found</div>
+      )}
+
+      {isLoading && currentPage > 1 && (
+        <div className="flex justify-center items-center mt-4">
+          <span className="loader">Loading more files...</span>
+        </div>
       )}
     </div>
   );
