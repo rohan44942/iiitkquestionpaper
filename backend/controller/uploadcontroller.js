@@ -175,14 +175,11 @@ const uploadNotes = async (req, res) => {
 // get uploaded notes
 const getUplodedNotes = async (req, res) => {
   try {
-    const { page = 1, year, semester, subject, status } = req.query;
+    const { page = 1, year, semester, subject } = req.query;
     const limit = 20; // Number of notes per page
     const skip = (page - 1) * limit;
 
-    const filter = {};
-    if (status === "true") {
-      filter["status"] = "accepted";
-    }
+    const filter = { status: "accepted" };
 
     if (year) {
       filter.year = year;
