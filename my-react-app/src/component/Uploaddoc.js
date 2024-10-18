@@ -9,6 +9,7 @@ const initialState = {
   year: "",
   branch: "",
   fileName: "",
+  uploadedBy: "",
   description: "",
   status: "pending",
   isUploading: false,
@@ -36,6 +37,8 @@ function reducer(state, action) {
       return { ...state, status: action.payload };
     case "SET_IS_UPLOADING":
       return { ...state, isUploading: action.payload };
+    case "SET_UPLOADEDBY":
+      return { ...state, uploadedBy: action.payload };
     case "CLEAR_FORM_FIELDS":
       return {
         ...state,
@@ -45,6 +48,7 @@ function reducer(state, action) {
         branch: "",
         fileName: "",
         description: "",
+        uploadedBy: "",
       };
     default:
       return state;
@@ -98,6 +102,7 @@ function Uploaddoc() {
       formData.append("year", state.year);
       formData.append("branch", state.branch);
       formData.append("status", state.status);
+      formData.append("uploadedBy",state.uploadedBy);
 
       dispatch({ type: "SET_IS_UPLOADING", payload: true });
 
@@ -145,7 +150,9 @@ function Uploaddoc() {
 
         <select
           value={state.year}
-          onChange={(e) => dispatch({ type: "SET_YEAR", payload: e.target.value })}
+          onChange={(e) =>
+            dispatch({ type: "SET_YEAR", payload: e.target.value })
+          }
           className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2 mb-4"
           required
         >
@@ -173,30 +180,45 @@ function Uploaddoc() {
 
         <select
           value={state.branch}
-          onChange={(e) => dispatch({ type: "SET_BRANCH", payload: e.target.value })}
+          onChange={(e) =>
+            dispatch({ type: "SET_BRANCH", payload: e.target.value })
+          }
           className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2 mb-4"
           required
         >
           <option value="" disabled>
             Select Branch
           </option>
-          <option value="cse">Computer Science Engineering</option>
-          <option value="ece">Electronics and Communication Engineering</option>
-          <option value="ai">Artificial Intelligence</option>
+          <option value="CSE">Computer Science Engineering</option>
+          <option value="ECE">Electronics and Communication Engineering</option>
+          <option value="AI">Artificial Intelligence</option>
         </select>
 
         <input
           type="text"
           value={state.fileName}
-          onChange={(e) => dispatch({ type: "SET_FILE_NAME", payload: e.target.value })}
+          onChange={(e) =>
+            dispatch({ type: "SET_FILE_NAME", payload: e.target.value })
+          }
           placeholder="Name of the File"
           className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2 mb-4"
           required
         />
+        <input
+          type="text"
+          value={state.uploadedBy}
+          onChange={(e) =>
+            dispatch({ type: "SET_UPLOADEDBY", payload: e.target.value })
+          }
+          placeholder="Uploader name by default: A helper"
+          className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2 mb-4"
+        />
 
         <textarea
           value={state.description}
-          onChange={(e) => dispatch({ type: "SET_DESCRIPTION", payload: e.target.value })}
+          onChange={(e) =>
+            dispatch({ type: "SET_DESCRIPTION", payload: e.target.value })
+          }
           placeholder="Description of the File"
           className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2 mb-4"
           rows="3"
@@ -205,7 +227,9 @@ function Uploaddoc() {
         <button
           type="submit"
           className={`bg-blue-600 text-white py-2 px-4 rounded-lg ${
-            state.isUploading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
+            state.isUploading
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-blue-700"
           }`}
           disabled={state.isUploading}
         >
