@@ -19,6 +19,7 @@ const getPendingExamFile = require("./routes/upload");
 const getPendingNotesFile = require("./routes/upload");
 const declineNoteUpload = require("./routes/upload");
 const acceptNoteUpload = require("./routes/upload");
+const downloadByFileName = require("./routes/upload");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -47,6 +48,15 @@ app.use("/api/uploads", upload.single("image"), uploadpapers);
 
 // Route to fetch a file by filename
 app.use("/api/uploads/", getByFileName);
+// For download
+app.use("/api", downloadByFileName);
+
+// For preview
+// app.get("/api/preview/:filename", (req, res) => {
+//   const filename = req.params.filename;
+//   const readStream = gfs.openDownloadStreamByName(filename);
+//   readStream.pipe(res);
+// });
 
 // Route to fetch all files with metadata those have status as accepted
 

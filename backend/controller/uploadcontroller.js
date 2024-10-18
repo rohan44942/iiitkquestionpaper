@@ -11,7 +11,7 @@ cloudinary.config({
 const uploadpapers = async (req, res) => {
   if (!req.file) return res.status(400).json({ message: "No file uploaded!" });
 
-  const { year, branch, description, fileName, status } = req.body;
+  const { year, branch, description, fileName, status, uploadedBy } = req.body;
   try {
     const filesCollection = mongoose.connection.db.collection("uploads.files");
 
@@ -24,6 +24,7 @@ const uploadpapers = async (req, res) => {
           "metadata.description": description || "No description",
           "metadata.fileName": fileName || req.file.filename,
           "metadata.status": status || req.file.status,
+          "metadata.uploadedBy": uploadedBy || "A helper",
         },
       }
     );
@@ -75,6 +76,16 @@ const getAllFiles = async (req, res) => {
   }
 }; // done
 
+const downloadByFileName = (req, res) => {
+  const gfs = req.gfs;
+  const filename = req.params.filename;
+  res.set({
+    "Content-Disposition": `attachment; filename="${filename}"`,
+    "Content-Type": "application/octet-stream",
+  });
+  const readStream = gfs.openDownloadStreamByName(filename);
+  readStream.pipe(res);
+};
 const getPaginatedFiles = async (req, res) => {
   const { page = 1, limit = 10, year, branch } = req.query; // Accept year and branch for filtering
 
@@ -226,12 +237,10 @@ const getPendingExamFile = async (req, res) => {
 };
 
 const declineNoteUpload = async (req, res) => {
-  
   const { id, type } = req.params; // Get the ID and type from the route
 
   try {
     if (type === "exam") {
-
       const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
         bucketName: "uploads",
       });
@@ -239,7 +248,6 @@ const declineNoteUpload = async (req, res) => {
       await bucket.delete(new ObjectId(id));
       res.status(200).json({ message: "Exam paper declined and deleted." });
     } else if (type === "notes") {
-
       const result = await Note.findByIdAndDelete(id);
       if (!result) return res.status(404).json({ message: "Note not found!" });
       res.status(200).json({ message: "Note declined and deleted." });
@@ -296,4 +304,5 @@ module.exports = {
   declineNoteUpload,
   acceptNoteUpload,
   getPendingNotesFile,
+  downloadByFileName,
 };
