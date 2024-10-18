@@ -126,12 +126,12 @@ function Home() {
           <span className="loader">Loading files...</span>
         </div>
       ) : filteredFiles.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {filteredFiles.map((file, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 ">
+          {filteredFiles.reverse().map((file, index) => (
             <div
               key={file._id}
               ref={index === filteredFiles.length - 1 ? observer : null} // Observe last item for infinite scroll
-              className="border rounded-lg shadow-lg p-6 bg-white flex flex-col"
+              className="border rounded-lg shadow-lg p-6 bg-gray-50 flex flex-col"
             >
               <div className="flex-shrink-0 mb-4">
                 {file.filename.endsWith(".pdf") ? (

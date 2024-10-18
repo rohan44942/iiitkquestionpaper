@@ -213,7 +213,7 @@ const getPendingNotesFile = async (req, res) => {
   try {
     const files = await mongoose.connection.db
       .collection("notes")
-      .find({ status: "pending" }) // Query for files with status "pending"
+      .find({ status: "accepted" }) // Query for files with status "pending"
       .toArray(); // Convert the cursor to an array of files
 
     res.status(200).json(files); // Send the files as a JSON response
