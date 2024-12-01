@@ -4,7 +4,7 @@ const { userModel } = require("../schema/userSchema");
 // const cookieParser = require("cookie-parser");
 
 require("dotenv").config();
-const key = process.env.SECRET_kEY;
+const key = process.env.SECRET_KEY;
 console.log(key);
 const register = async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -90,9 +90,9 @@ const login = async (req, res) => {
     }
 
     // Generate JWT
-    const token = jwt.sign(
+    const token = jwt.sign( 
       { email: user.email, id: user._id, role: user.role },
-      process.env.SECRET_kEY, // Use the correct environment variable
+      key, 
       {
         expiresIn: "1h", // Token expires in 1 hour
       }
