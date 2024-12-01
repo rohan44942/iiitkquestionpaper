@@ -33,6 +33,8 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "admin"],
     default: "user",
   },
+  passwordResetExpires: Date,
+  otp: String,
 });
 const userModel = mongoose.model("User", userSchema);
 module.exports = { userModel };

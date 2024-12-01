@@ -1,11 +1,12 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { userModel } = require("../schema/userSchema");
+const sendEmail = require("../utils/sendEmail");
 // const cookieParser = require("cookie-parser");
 
 require("dotenv").config();
 const key = process.env.SECRET_KEY;
-console.log(key);
+
 const register = async (req, res) => {
   const { fullName, email, password } = req.body;
 
@@ -37,42 +38,6 @@ const register = async (req, res) => {
   }
 };
 
-// const login = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     if (!email || !password) {
-//       return res.status(400).json({ msg: "Email and password are required" });
-//     }
-//     const user = await userModel.findOne({ email });
-//     if (!user) {
-//       return res.status(401).json({ msg: "Invalid email or password" });
-//     }
-//     const isMatch = await bcrypt.compare(password, user.password);
-//     if (!isMatch) {
-//       return res.status(401).json({ msg: "Invalid email or password" });
-//     }
-//     // Generate JWT
-//     const token = jwt.sign(
-//       { email: user.email, id: user._id, role: user.role },
-//       key,
-//       {
-//         expiresIn: "1h", // Token expires in 1 hour
-//       }
-//     );
-//     res
-//       .status(200)
-//       .cookie("token", token, {
-//         httpOnly: true, // Prevent access from client-side scripts
-//         secure: process.env.NODE_ENV === "production", // Send only over HTTPS when we put this in production
-//         maxAge: 60 * 60 * 1000, // 1 hour only
-//         sameSite: "None",
-//       })
-//       .json({ msg: "Login successful", token: token });
-//   } catch (err) {
-//     console.error("Login failed   ", err);
-//     res.status(500).json({ msg: " server error" });
-//   }
-// };
 
 const login = async (req, res) => {
   try {
@@ -90,9 +55,9 @@ const login = async (req, res) => {
     }
 
     // Generate JWT
-    const token = jwt.sign( 
+    const token = jwt.sign(
       { email: user.email, id: user._id, role: user.role },
-      key, 
+      key,
       {
         expiresIn: "1h", // Token expires in 1 hour
       }
@@ -143,32 +108,6 @@ const logout = (req, res) => {
   res.status(200).json({ msg: "Logged out successfully" });
 };
 
-// const findUserWithEmail = async (req, res) => {
-//   const { email } = req.query; // Extract email from query parameters
-//   // Validate the input
-//   if (!email) {
-//     return res.status(400).json({ msg: "Please provide a valid email." });
-//   }
-
-//   try {
-//     // Find the user with the specified email, selecting only fullName, role, and email fields
-//     const user = await userModel
-//       .findOne({ email })
-//       .select("fullName role email");
-
-//     // If no user is found, return a 404 status
-//     if (!user) {
-//       return res.status(404).json({ msg: "User not found." });
-//     }
-
-//     // Respond with the user data
-//     res.status(200).json({ user });
-//   } catch (err) {
-//     // Handle any server errors
-//     console.error("Error finding user with email:", err.message);
-//     res.status(500).json({ msg: "An error occurred while fetching the user." });
-//   }
-// };
 const changeRole = async (req, res) => {
   try {
     const { email, role } = req.body; // Assume you send email and newRole in the body
@@ -190,4 +129,120 @@ const changeRole = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getUserDetails, logout, changeRole };
+const sendOtp = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Check if user exists
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "No account found with this email." });
+    }
+
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Hash the OTP
+    const hashedOtp = await bcrypt.hash(otp, 10);
+
+    // Save OTP and its expiration time in the user document
+    user.otp = hashedOtp;
+    user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // Valid for 10 minutes
+    // console.log(Date.now());
+    await user.save();
+
+    // Send the OTP to the user via email
+    const message = `
+      <p>Your OTP for resetting the password is: <strong>${otp}</strong>.</p>
+      <p>This OTP is valid for 10 minutes. If you did not request this, please ignore this email.</p>
+    `;
+
+    await sendEmail({
+      email: user.email,
+      subject: "Password Reset OTP",
+      message,
+    });
+
+    res.status(200).json({ message: "OTP sent to your email." });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Something went wrong. Please try again later." });
+  }
+};
+// Verify OTP sent to the user's email
+const verifyOtp = async (req, res) => {
+  const { email, otp } = req.body;
+
+
+  try {
+    const user = await userModel.findOne({ email });
+   
+    if (!user || !user.otp || !user.passwordResetExpires) {
+      return res.status(400).json({ message: "Invalid or expired OTP this." });
+    }
+
+    // Check if the OTP is valid
+    const isOtpValid = await bcrypt.compare(otp, user.otp);
+   
+    if (!isOtpValid || user.passwordResetExpires < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP." });
+    }
+
+    // OTP is valid, allow password reset
+    user.otp = undefined; // Clear OTP after verification
+    user.otpExpires = undefined;
+    await user.save();
+
+    res
+      .status(200)
+      .json({ message: "OTP verified. You may now reset your password." });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Something went wrong. Please try again later." });
+  }
+};
+
+// Update the password for the user after OTP verification
+const updatePassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  try {
+    // Find the user by email
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the password and clear OTP-related fields
+    user.password = hashedPassword;
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+
+    res.status(200).json({});
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Something went wrong. Please try again later." });
+  }
+};
+module.exports = {
+  register,
+  login,
+  getUserDetails,
+  logout,
+  changeRole,
+  sendOtp,
+  verifyOtp,
+  updatePassword,
+};
