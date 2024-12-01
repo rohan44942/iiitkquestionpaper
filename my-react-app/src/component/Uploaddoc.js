@@ -1,5 +1,6 @@
-import { useReducer, useState, useEffect } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useReducer, useEffect, useContext } from "react";
+// import { useAuth0 } from "@auth0/auth0-react";
+import { UserContext } from "../contextapi/userContext";
 
 const initialState = {
   upload: null,
@@ -57,7 +58,8 @@ function reducer(state, action) {
 
 function Uploaddoc() {
   const apiurl = process.env.REACT_APP_API_URL;
-  const { user } = useAuth0();
+  // const { user } = useAuth0();
+  const { user } = useContext(UserContext);
   const [state, dispatch] = useReducer(reducer, initialState);
 
   // Handle image selection and preview
@@ -102,7 +104,7 @@ function Uploaddoc() {
       formData.append("year", state.year);
       formData.append("branch", state.branch);
       formData.append("status", state.status);
-      formData.append("uploadedBy",state.uploadedBy);
+      formData.append("uploadedBy", state.uploadedBy);
 
       dispatch({ type: "SET_IS_UPLOADING", payload: true });
 
@@ -110,6 +112,7 @@ function Uploaddoc() {
         const response = await fetch(`${apiurl}/api/uploads`, {
           method: "POST",
           body: formData,
+          credentials: "include",
         });
 
         if (!response.ok) {

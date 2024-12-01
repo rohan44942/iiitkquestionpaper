@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const cloudinary = require("cloudinary").v2;
 const { ObjectId } = require("mongodb");
 const { Note } = require("../schema/noteschema");
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || dlmypwh71,
   api_key: process.env.CLOUDINARY_API_KEY || 142613153773972,
