@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import LogoutButton from "../component/LogoutButton";
 import Profile from "../component/Profile";
-import { LazyLoadImage } from 'react-lazy-load-image-component';
+import MakeAdmin from "../component/MakeAdmin";
+// import { LazyLoadImage } from 'react-lazy-load-image-component';
 
 const api = process.env.REACT_APP_API_URL;
 
@@ -15,19 +16,23 @@ function Admin() {
   useEffect(() => {
     const fetchPendingExamUploads = async () => {
       try {
-        const res = await fetch(`${api}/api/uploads/status/pending/papers`);
+        const res = await fetch(`${api}/api/uploads/status/pending/papers`, {
+          credentials: "include",
+        });
         const data = await res.json();
-        
+
         setPendingExamUploads(data);
       } catch (error) {
         console.error("Error fetching pending exam uploads:", error);
         setError("Failed to load pending exam uploads.");
       }
     };
-    
+
     const fetchPendingNotesUploads = async () => {
       try {
-        const res = await fetch(`${api}/api/uploads/status/pending/notes`);
+        const res = await fetch(`${api}/api/uploads/status/pending/notes`, {
+          credentials: "include",
+        });
         const data = await res.json();
         setPendingNotesUploads(data);
       } catch (error) {
@@ -38,7 +43,10 @@ function Admin() {
 
     const fetchData = async () => {
       setLoading(true);
-      await Promise.all([fetchPendingExamUploads(), fetchPendingNotesUploads()]);
+      await Promise.all([
+        fetchPendingExamUploads(),
+        fetchPendingNotesUploads(),
+      ]);
       setLoading(false);
     };
 
@@ -47,11 +55,18 @@ function Admin() {
 
   const declineUpload = async (id, type) => {
     try {
-      await fetch(`${api}/api/uploads/${type}/${id}`, { method: "DELETE" });
+      await fetch(`${api}/api/uploads/${type}/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
       if (type === "exam") {
-        setPendingExamUploads(pendingExamUploads.filter((upload) => upload._id !== id));
+        setPendingExamUploads(
+          pendingExamUploads.filter((upload) => upload._id !== id)
+        );
       } else {
-        setPendingNotesUploads(pendingNotesUploads.filter((upload) => upload._id !== id));
+        setPendingNotesUploads(
+          pendingNotesUploads.filter((upload) => upload._id !== id)
+        );
       }
     } catch (error) {
       console.error("Error declining upload:", error);
@@ -63,11 +78,16 @@ function Admin() {
     try {
       await fetch(`${api}/api/uploads/status/accept/${type}/${id}`, {
         method: "PUT",
+        credentials: "include",
       });
       if (type === "exam") {
-        setPendingExamUploads(pendingExamUploads.filter((upload) => upload._id !== id));
+        setPendingExamUploads(
+          pendingExamUploads.filter((upload) => upload._id !== id)
+        );
       } else {
-        setPendingNotesUploads(pendingNotesUploads.filter((upload) => upload._id !== id));
+        setPendingNotesUploads(
+          pendingNotesUploads.filter((upload) => upload._id !== id)
+        );
       }
     } catch (error) {
       console.error("Error accepting upload:", error);
@@ -89,93 +109,122 @@ function Admin() {
         <p className="text-red-500">{error}</p>
       ) : (
         <>
-          {/* Pending Exam Uploads */}
-          <h2 className="text-3xl font-semibold text-gray-700 mb-4">Pending Exam Uploads</h2>
-          {pendingExamUploads.length === 0 ? (
-            <p className="text-gray-500">No pending uploads.</p>
-          ) : (
-            <ul className="space-y-6">
-              {pendingExamUploads.map((upload) => (
-                <li key={upload._id} className="bg-white rounded-lg shadow-lg p-6 space-y-1">
-                  <h3 className="text-xl font-bold">{upload.metadata.fileName}</h3>
-                  <p className="text-gray-600">Year and Semester: {upload.metadata.year}</p>
-                  <p className="text-gray-600">Branch: {upload.metadata.branch}</p>
-                  <p className="text-gray-600">Description: {upload.metadata.description}</p>
-                  <p className="text-gray-600">Date: {upload.uploadDate}</p>
-
-
-
-                  <div className="flex space-x-4 mt-4">
-                    <button
-                      onClick={() => acceptUpload(upload._id, "exam")}
-                      className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
+          <div className="flex flex-col justify-between">
+            <div className="w-full h-[50%] lg:h-[90%] ">
+              <MakeAdmin />
+            </div>
+            <div className="w-full">
+              {/* Pending Exam Uploads */}
+              <h2 className="text-3xl font-semibold text-gray-700 mb-4">
+                Pending Exam Uploads
+              </h2>
+              {pendingExamUploads.length === 0 ? (
+                <p className="text-gray-500">No pending uploads.</p>
+              ) : (
+                <ul className="space-y-6">
+                  {pendingExamUploads.map((upload) => (
+                    <li
+                      key={upload._id}
+                      className="bg-white rounded-lg shadow-lg p-6 space-y-1"
                     >
-                      Accept
-                    </button>
-                    <button
-                      onClick={() => declineUpload(upload._id, "exam")}
-                      className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
-                    >
-                      Decline
-                    </button>
-                  </div>
+                      <h3 className="text-xl font-bold">
+                        {upload.metadata.fileName}
+                      </h3>
+                      <p className="text-gray-600">
+                        Year and Semester: {upload.metadata.year}
+                      </p>
+                      <p className="text-gray-600">
+                        Branch: {upload.metadata.branch}
+                      </p>
+                      <p className="text-gray-600">
+                        Description: {upload.metadata.description}
+                      </p>
+                      <p className="text-gray-600">Date: {upload.uploadDate}</p>
 
-                  <div className="mt-4">
-                    <a
-                      href={`${api}/api/uploads/${upload.filename}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:text-blue-700 transition duration-300"
-                    >
-                      Preview Exam Paper
-                    </a>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                      <div className="flex space-x-4 mt-4">
+                        <button
+                          onClick={() => acceptUpload(upload._id, "exam")}
+                          className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => declineUpload(upload._id, "exam")}
+                          className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
+                        >
+                          Decline
+                        </button>
+                      </div>
 
-          {/* Pending Notes Uploads */}
-          <h2 className="text-3xl font-semibold text-gray-700 mb-4 mt-6">Pending Notes Uploads</h2>
-          {pendingNotesUploads.length === 0 ? (
-            <p className="text-gray-500">No pending uploads.</p>
-          ) : (
-            <ul className="space-y-2">
-              {pendingNotesUploads.map((upload) => (
-                <li key={upload._id} className="bg-white rounded-lg shadow-lg p-6 space-y-1">
-                  <h3 className="text-xl font-bold">{upload.subjectName}</h3>
-                  <p className="text-gray-600">Year and semester: {upload.year}</p>
-                  <p className="text-gray-600">Branch: {upload.branch}</p>
-                  <p className="text-gray-600">Description: {upload.description}</p>
+                      <div className="mt-4">
+                        <a
+                          href={`${api}/api/uploads/${upload.filename}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:text-blue-700 transition duration-300"
+                        >
+                          Preview Exam Paper
+                        </a>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-                  <div className="space-x-4">
-                    <button
-                      onClick={() => acceptUpload(upload._id, "notes")}
-                      className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg"
+              {/* Pending Notes Uploads */}
+              <h2 className="text-3xl font-semibold text-gray-700 mb-4 mt-6">
+                Pending Notes Uploads
+              </h2>
+              {pendingNotesUploads.length === 0 ? (
+                <p className="text-gray-500">No pending uploads.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {pendingNotesUploads.map((upload) => (
+                    <li
+                      key={upload._id}
+                      className="bg-white rounded-lg shadow-lg p-6 space-y-1"
                     >
-                      Accept
-                    </button>
-                    <button
-                      onClick={() => declineUpload(upload._id, "notes")}
-                      className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg"
-                    >
-                      Decline
-                    </button>
-                  </div>
-                  <div className="mt-4">
-                    <a
-                      href={upload.fileLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:text-blue-700"
-                    >
-                      Preview Notes
-                    </a>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                      <h3 className="text-xl font-bold">
+                        {upload.subjectName}
+                      </h3>
+                      <p className="text-gray-600">
+                        Year and semester: {upload.year}
+                      </p>
+                      <p className="text-gray-600">Branch: {upload.branch}</p>
+                      <p className="text-gray-600">
+                        Description: {upload.description}
+                      </p>
+
+                      <div className="space-x-4">
+                        <button
+                          onClick={() => acceptUpload(upload._id, "notes")}
+                          className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => declineUpload(upload._id, "notes")}
+                          className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                      <div className="mt-4">
+                        <a
+                          href={upload.fileLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:text-blue-700"
+                        >
+                          Preview Notes
+                        </a>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </>
       )}
     </div>

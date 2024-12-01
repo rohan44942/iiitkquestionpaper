@@ -1,61 +1,90 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useContext,
+} from "react";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
-import { FaDownload, FaEye } from "react-icons/fa";
+import { FaDownload, FaEye, FaTrash } from "react-icons/fa";
+import { UserContext } from "../contextapi/userContext";
 
 function Home() {
+  const { user } = useContext(UserContext); // Context to get user role
   const [files, setFiles] = useState([]);
   const [error, setError] = useState(null);
   const [yearFilter, setYearFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // Changed initial state to false
+  const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const observerRef = useRef(); // Use ref to hold the observer
+  const observerRef = useRef();
   const apiUrl = process.env.REACT_APP_API_URL;
-
+  const admin1 = process.env.REACT_APP_ADMIN1;
+  const admin2 = process.env.REACT_APP_ADMIN2;
   const fetchFiles = async (page) => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${apiUrl}/api/uploads/?page=${page}&limit=10&year=${yearFilter}&branch=${branchFilter}`
+        `${apiUrl}/api/uploads/?page=${page}&limit=10&year=${yearFilter}&branch=${branchFilter}`,
+        {
+          credentials: "include",
+        }
       );
       if (!response.ok) throw new Error("Failed to fetch files");
       const data = await response.json();
-
-      setFiles((prev) => [...prev, ...data.files]); // Append new files
-      setHasMore(data.files.length > 0); // Set hasMore based on the response
+      setFiles((prev) => [...prev, ...data.files]);
+      setHasMore(data.files.length > 0);
     } catch (err) {
       setError(err.message);
     } finally {
-      setIsLoading(false); // Set loading to false after fetching is done
+      setIsLoading(false);
     }
   };
 
-  // Infinite Scroll using Intersection Observer
+  const handleDelete = async (id, type) => {
+    if (window.confirm("Are you sure you want to delete this file?")) {
+      try {
+        const response = await fetch(`${apiUrl}/api/uploads/${type}/${id}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          // Remove the deleted file from the files state
+          setFiles((prevFiles) => prevFiles.filter((file) => file._id !== id));
+          alert("File deleted successfully.");
+        } else {
+          const data = await response.json();
+          alert(data.message || "Failed to delete file.");
+        }
+      } catch (error) {
+        console.error(error);
+        alert("An error occurred while deleting the file.");
+      }
+    }
+  };
+
   const observer = useCallback(
     (node) => {
-      if (isLoading || !hasMore) return; // Exit if still loading or no more data
-      if (observerRef.current) observerRef.current.disconnect(); // Disconnect previous observer
+      if (isLoading || !hasMore) return;
+      if (observerRef.current) observerRef.current.disconnect();
       observerRef.current = new IntersectionObserver(
         (entries) => {
           if (entries[0].isIntersecting && hasMore) {
-            setCurrentPage((prevPage) => prevPage + 1); // Increase the page
+            setCurrentPage((prevPage) => prevPage + 1);
           }
         },
-        {
-          root: null,
-          rootMargin: "20px",
-          threshold: 1.0,
-        }
+        { root: null, rootMargin: "20px", threshold: 1.0 }
       );
-      if (node) observerRef.current.observe(node); // Observe new node
+      if (node) observerRef.current.observe(node);
     },
     [isLoading, hasMore]
   );
 
   useEffect(() => {
-    fetchFiles(currentPage); // Fetch files whenever currentPage changes
+    fetchFiles(currentPage);
   }, [currentPage, yearFilter, branchFilter]);
 
   const filteredFiles = files.filter((file) => {
@@ -75,13 +104,13 @@ function Home() {
         IIITK Resource Files
       </h1>
 
-      <div className="flex flex-col md:flex-row justify-between mb-4 gap-2 ">
+      <div className="flex flex-col md:flex-row justify-between mb-4 gap-2">
         <select
           value={yearFilter}
           onChange={(e) => {
             setYearFilter(e.target.value);
-            setCurrentPage(1); // Reset to first page on filter change
-            setFiles([]); // Clear current files
+            setCurrentPage(1);
+            setFiles([]);
           }}
           className="border rounded-lg p-2 bg-white"
         >
@@ -109,8 +138,8 @@ function Home() {
           value={branchFilter}
           onChange={(e) => {
             setBranchFilter(e.target.value);
-            setCurrentPage(1); // Reset to first page on filter change
-            setFiles([]); // Clear current files
+            setCurrentPage(1);
+            setFiles([]);
           }}
           className="border rounded-lg p-2 bg-white"
         >
@@ -126,11 +155,11 @@ function Home() {
           <span className="loader">Loading files...</span>
         </div>
       ) : filteredFiles.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 ">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {filteredFiles.reverse().map((file, index) => (
             <div
               key={file._id}
-              ref={index === filteredFiles.length - 1 ? observer : null} // Observe last item for infinite scroll
+              ref={index === filteredFiles.length - 1 ? observer : null}
               className="border rounded-lg shadow-lg p-6 bg-gray-50 flex flex-col"
             >
               <div className="flex-shrink-0 mb-4">
@@ -138,26 +167,17 @@ function Home() {
                   <iframe
                     title="PDF Preview"
                     style={{ display: "block" }}
-                    className="w-full h-48 border-none overflow-hidden "
+                    className="w-full h-48 border-none overflow-hidden"
                     src={`${apiUrl}/api/uploads/${file.filename}`}
                     loading="lazy"
                   />
                 ) : (
-                  <div className="relative inline-block">
-                    <LazyLoadImage
-                      alt={file.filename}
-                      effect="blur"
-                      className="w-full h-48 object-cover cursor-pointer rounded hover:opacity-80 shadow"
-                      src={`${apiUrl}/api/uploads/${file.filename}`}
-                      height={200}
-                      width={200}
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-50 rounded">
-                      <span className="text-white text-sm">
-                        Click on the view to preview
-                      </span>
-                    </div>
-                  </div>
+                  <LazyLoadImage
+                    alt={file.filename}
+                    effect="blur"
+                    className="w-full h-48 object-cover cursor-pointer rounded hover:opacity-80 shadow"
+                    src={`${apiUrl}/api/uploads/${file.filename}`}
+                  />
                 )}
               </div>
 
@@ -181,7 +201,7 @@ function Home() {
                   Branch: {file.metadata.branch}
                 </p>
                 <p className="text-gray-500 text-sm">
-                  uploaded by: {file.metadata.uploadedBy || "A Helper"}
+                  Uploaded by: {file.metadata.uploadedBy || "A Helper"}
                 </p>
                 <p className="text-gray-500 text-sm">
                   Uploaded on:{" "}
@@ -191,22 +211,31 @@ function Home() {
                   File Size: {(file.length / 1000).toFixed(2)} Kb
                 </p>
 
-                <div className="mt-4 flex space-x-4">
+                <div className="mt-4 flex flex-col space-y-2">
                   <a
-                    href={`${apiUrl}/api/download/${file.filename}`} // Changed to use the download route
+                    href={`${apiUrl}/api/download/${file.filename}`}
                     className="flex items-center text-blue-500 hover:underline"
                   >
                     <FaDownload className="mr-1" /> Download
                   </a>
-
                   <a
-                    href={`${apiUrl}/api/uploads/${file.filename}`} // Changed to use the preview route
+                    href={`${apiUrl}/api/uploads/${file.filename}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center text-blue-500 hover:underline"
                   >
                     <FaEye className="mr-1" /> View
                   </a>
+                  {(user?.role === "admin" ||
+                    user?.email === admin1 ||
+                    user?.email === admin2) && (
+                    <button
+                      onClick={() => handleDelete(file._id, "exam")}
+                      className="flex items-center text-red-500 hover:underline"
+                    >
+                      <FaTrash className="mr-1" /> Delete
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

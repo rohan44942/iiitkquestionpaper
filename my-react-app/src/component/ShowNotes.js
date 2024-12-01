@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
+import { UserContext } from "../contextapi/userContext";
 
 function ShowNotes() {
   const [notes, setNotes] = useState([]); // All notes
@@ -9,16 +10,21 @@ function ShowNotes() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const notesPerPage = 10; 
-  const apiurl = process.env.REACT_APP_API_URL;
+  const notesPerPage = 10;
+  const apiUrl = process.env.REACT_APP_API_URL;
   const observerRef = useRef();
+  const { user } = useContext(UserContext);
+  const admin1 = process.env.REACT_APP_ADMIN1;
+  const admin2 = process.env.REACT_APP_ADMIN2;
 
   const fetchNotes = async (page) => {
     if (loading || !hasMore) return;
 
     setLoading(true);
     try {
-      const response = await fetch(`${apiurl}/api/upload/notes?page=${page}`);
+      const response = await fetch(`${apiUrl}/api/upload/notes?page=${page}`, {
+        credentials: "include",
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -33,7 +39,7 @@ function ShowNotes() {
       }
 
       setNotes((prevNotes) => [...prevNotes, ...data.notes]);
-      
+
       if (data.notes.length < notesPerPage) {
         setHasMore(false);
       }
@@ -41,6 +47,28 @@ function ShowNotes() {
       console.error("Error fetching notes:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id, type) => {
+    if (window.confirm("Are you sure you want to delete this note?")) {
+      try {
+        const response = await fetch(`${apiUrl}/api/uploads/${type}/${id}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          setNotes((prevNotes) => prevNotes.filter((note) => note._id !== id));
+          alert("Note deleted successfully.");
+        } else {
+          const data = await response.json();
+          alert(data.message || "Failed to delete the note.");
+        }
+      } catch (error) {
+        console.error("Error deleting the note:", error);
+        alert("An error occurred while deleting the note.");
+      }
     }
   };
 
@@ -68,7 +96,6 @@ function ShowNotes() {
     setFilteredNotes(filtered);
   }, [yearFilter, semesterFilter, subjectFilter, notes]);
 
-  // Handle scroll for infinite scrolling
   const handleScroll = (entries) => {
     const target = entries[0];
     if (target.isIntersecting && !loading) {
@@ -161,6 +188,16 @@ function ShowNotes() {
               >
                 View File
               </a>
+              {(user?.role === "admin" ||
+                user?.email === admin1 ||
+                user?.email === admin2) && (
+                <button
+                  onClick={() => handleDelete(note._id, "notes")}
+                  className="m-2 text-red-500 hover:text-red-700 underline "
+                >
+                  Delete Note
+                </button>
+              )}
             </li>
           ))}
         </ul>

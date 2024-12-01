@@ -1,5 +1,6 @@
-import React, { useReducer } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import React, { useReducer, useContext } from "react";
+// import { useAuth0 } from "@auth0/auth0-react";
+import { UserContext } from "../contextapi/userContext";
 
 const initialState = {
   file: null,
@@ -42,7 +43,8 @@ const reducer = (state, action) => {
 };
 
 const UploadNotes = () => {
-  const { user } = useAuth0();
+  // const { user } = useAuth0();
+  const { user } = useContext(UserContext);
   const [state, dispatch] = useReducer(reducer, initialState);
   const apiurl = process.env.REACT_APP_API_URL;
 
@@ -71,13 +73,18 @@ const UploadNotes = () => {
       const response = await fetch(`${apiurl}/api/upload/link`, {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
 
       const data = await response.json();
       dispatch({ type: "SET_FILE_LINK", payload: data.secure_url });
     } catch (error) {
       console.error("Error uploading file:", error);
-      alert("File upload failed!");
+      if (error.http_code === 400) {
+        alert("Got a size Error: ", error.message);
+      } else {
+        alert("something went wrong");
+      }
     } finally {
       dispatch({ type: "SET_UPLOADING", payload: false });
     }
@@ -99,6 +106,7 @@ const UploadNotes = () => {
     try {
       const response = await fetch(`${apiurl}/api/upload/notes`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -124,6 +132,11 @@ const UploadNotes = () => {
 
       {!state.showMetaForm ? (
         <div className="bg-white shadow-lg p-6 rounded-md">
+          <label>
+            <p className="text-green-500 text-center">
+              Please upload file size less then 10 mb
+            </p>
+          </label>
           <input
             type="file"
             name="file"
