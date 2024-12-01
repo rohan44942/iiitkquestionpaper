@@ -4,7 +4,8 @@ const { userModel } = require("../schema/userSchema");
 // const cookieParser = require("cookie-parser");
 
 require("dotenv").config();
-const key = process.env.SECRET_KEY;
+const key = process.env.SECRET_kEY;
+console.log(key);
 const register = async (req, res) => {
   const { fullName, email, password } = req.body;
 
@@ -36,6 +37,43 @@ const register = async (req, res) => {
   }
 };
 
+// const login = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     if (!email || !password) {
+//       return res.status(400).json({ msg: "Email and password are required" });
+//     }
+//     const user = await userModel.findOne({ email });
+//     if (!user) {
+//       return res.status(401).json({ msg: "Invalid email or password" });
+//     }
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) {
+//       return res.status(401).json({ msg: "Invalid email or password" });
+//     }
+//     // Generate JWT
+//     const token = jwt.sign(
+//       { email: user.email, id: user._id, role: user.role },
+//       key,
+//       {
+//         expiresIn: "1h", // Token expires in 1 hour
+//       }
+//     );
+//     res
+//       .status(200)
+//       .cookie("token", token, {
+//         httpOnly: true, // Prevent access from client-side scripts
+//         secure: process.env.NODE_ENV === "production", // Send only over HTTPS when we put this in production
+//         maxAge: 60 * 60 * 1000, // 1 hour only
+//         sameSite: "None",
+//       })
+//       .json({ msg: "Login successful", token: token });
+//   } catch (err) {
+//     console.error("Login failed   ", err);
+//     res.status(500).json({ msg: " server error" });
+//   }
+// };
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -50,26 +88,28 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ msg: "Invalid email or password" });
     }
+
     // Generate JWT
     const token = jwt.sign(
       { email: user.email, id: user._id, role: user.role },
-      key,
+      process.env.SECRET_kEY, // Use the correct environment variable
       {
         expiresIn: "1h", // Token expires in 1 hour
       }
     );
+
     res
       .status(200)
       .cookie("token", token, {
         httpOnly: true, // Prevent access from client-side scripts
-        secure: process.env.NODE_ENV === "production", // Send only over HTTPS when we put this in production
+        secure: process.env.NODE_ENV === "production", // Send only over HTTPS when in production
         maxAge: 60 * 60 * 1000, // 1 hour only
         sameSite: "None",
       })
       .json({ msg: "Login successful", token: token });
   } catch (err) {
     console.error("Login failed   ", err);
-    res.status(500).json({ msg: " server error" });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
