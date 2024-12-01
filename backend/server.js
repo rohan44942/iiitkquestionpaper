@@ -22,7 +22,7 @@ const getPendingNotesFile = require("./routes/upload");
 const declineNoteUpload = require("./routes/upload");
 const acceptNoteUpload = require("./routes/upload");
 const downloadByFileName = require("./routes/upload");
-const {userModel} = require("./schema/userSchema")
+const { userModel } = require("./schema/userSchema");
 // user routes
 const register = require("./routes/userRoutes");
 const login = require("./routes/userRoutes");
@@ -33,10 +33,18 @@ const changeRole = require("./routes/userRoutes");
 const app = express();
 const port = process.env.PORT || 5000;
 
+// const optionsforcore = {
+//   origin: "http://localhost:3000" || "https://iiitkquestionpaper.onrender.com", // origin set
+//   credentials: true, // Allow our cookie
+// };
 const optionsforcore = {
-  origin: "http://localhost:3000", // origin set
-  credentials: true, // Allow our cookie
+  origin:
+    process.env.NODE_ENV === "production"
+      ? `${process.env.BACKEND_LOCAL_REACT_APP_API_URL}` // Use production URL
+      : `${process.env.BACKEND_DEPLOY_REACT_APP_API_URL}`, // Use local URL for development
+  credentials: true, // Allow cookies
 };
+
 app.use(cors(optionsforcore));
 app.use(express.json());
 app.use(cookieParser());
@@ -98,7 +106,7 @@ app.put("/api/uploads", acceptNoteUpload);
 
 // user login
 // Register
-app.get("/user/data", async (req, res) => {  
+app.get("/user/data", async (req, res) => {
   const { email } = req.query; // Extract email from query parameters
   // Validate the input
   if (!email) {
@@ -109,7 +117,7 @@ app.get("/user/data", async (req, res) => {
     // Find the user with the specified email, selecting only fullName, role, and email fields
     const user = await userModel
       .findOne({ email })
-     .select("fullName role email");
+      .select("fullName role email");
 
     // If no user is found, return a 404 status
     if (!user) {
@@ -133,7 +141,7 @@ app.use("/", getUserDetails);
 app.use("/", logout);
 
 // app.use("/", findUserWithEmail);
-app.use('/',changeRole);
+app.use("/", changeRole);
 
 // Error handling middleware to capture errors
 app.use((err, req, res, next) => {
