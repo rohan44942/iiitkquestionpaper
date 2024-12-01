@@ -30,7 +30,7 @@ export const UserProvider = ({ children }) => {
 
         const data = await response.json();
         if (data.user) {
-          updateUser(data.user); // Use the updateUser function to set user and authentication
+          updateUser(data.user);
         }
       } catch (err) {
         console.error("Error checking authentication status:", err);

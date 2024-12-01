@@ -13,7 +13,7 @@ const AuthForm = ({ baseUrl }) => {
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState(""); // Error state for validation or server errors
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { updateUser, setLoginClicked } = useContext(UserContext);
 
@@ -59,7 +59,7 @@ const AuthForm = ({ baseUrl }) => {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || "Something went wrong!");
+        throw new Error("Something went wrong!");
       }
 
       setError(""); // Reset error state
@@ -99,7 +99,9 @@ const AuthForm = ({ baseUrl }) => {
           Welcome to <span className="text-blue-500">IIIK Resources</span>
         </h3>
         {error && (
-          <p className="text-red-500 text-center text-sm mb-3">{error}</p>
+          <p className="text-red-500 text-center text-sm mb-3">
+            oops..{error} please try again{" "}
+          </p>
         )}
         <form autoComplete="off" onSubmit={handleSubmit}>
           {!isLogin && (
