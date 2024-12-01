@@ -22,7 +22,7 @@ const getPendingNotesFile = require("./routes/upload");
 const declineNoteUpload = require("./routes/upload");
 const acceptNoteUpload = require("./routes/upload");
 const downloadByFileName = require("./routes/upload");
-const {userModel} = require("./schema/userSchema")
+const { userModel } = require("./schema/userSchema");
 // user routes
 const register = require("./routes/userRoutes");
 const login = require("./routes/userRoutes");
@@ -37,6 +37,7 @@ const allowedOrigins = [
   process.env.FRONTEND_LOCAL_URL, // From .env for development
   process.env.FRONTEND_DEPLOY_URL, // From .env for production
 ];
+
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -111,7 +112,7 @@ app.put("/api/uploads", acceptNoteUpload);
 
 // user login
 // Register
-app.get("/user/data", async (req, res) => {  
+app.get("/user/data", async (req, res) => {
   const { email } = req.query; // Extract email from query parameters
   // Validate the input
   if (!email) {
@@ -122,7 +123,7 @@ app.get("/user/data", async (req, res) => {
     // Find the user with the specified email, selecting only fullName, role, and email fields
     const user = await userModel
       .findOne({ email })
-     .select("fullName role email");
+      .select("fullName role email");
 
     // If no user is found, return a 404 status
     if (!user) {
@@ -146,7 +147,7 @@ app.use("/", getUserDetails);
 app.use("/", logout);
 
 // app.use("/", findUserWithEmail);
-app.use('/',changeRole);
+app.use("/", changeRole);
 
 // Error handling middleware to capture errors
 app.use((err, req, res, next) => {
