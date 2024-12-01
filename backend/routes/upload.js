@@ -30,8 +30,8 @@ router.get("/", getAllFiles);
 router.post("/link", userAuthenticate, getLinkFromCloudinary);
 router.post("/notes", userAuthenticate, uploadNotes);
 router.get("/notes", getUplodedNotes);
-router.get("/status/pending/papers",adminAuthenticate, getPendingExamFile);
-router.get("/status/pending/notes",adminAuthenticate, getPendingNotesFile);
+router.get("/status/pending/papers", adminAuthenticate, getPendingExamFile);
+router.get("/status/pending/notes", adminAuthenticate, getPendingNotesFile);
 // router.delete('/api/uploads/:id/:type', declineNoteUpload);
 
 router.delete("/:type/:id", adminAuthenticate, declineNoteUpload);
