@@ -40,8 +40,8 @@ const port = process.env.PORT || 5000;
 const optionsforcore = {
   origin:
     process.env.NODE_ENV === "production"
-      ? `${process.env.BACKEND_LOCAL_REACT_APP_API_URL}` // Use production URL
-      : `${process.env.BACKEND_DEPLOY_REACT_APP_API_URL}`, // Use local URL for development
+      ? `${process.env.BACKEND_DEPLOY_REACT_APP_API_URL}` // Use production URL
+      : `${process.env.BACKEND_LOCAL_REACT_APP_API_URL}`, // Use local URL for development
   credentials: true, // Allow cookies
 };
 
