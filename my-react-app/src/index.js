@@ -6,23 +6,26 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
+import ErrorBoundary from "./component/ErrorBoundary";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <UserProvider>
-    {/* <Auth0Provider
-      domain="dev-c7ap44czi23i7ka6.us.auth0.com"
-      clientId="rfSZVd2Iw8bjiJ8NMYvN4ss4Mdn0FkLC" // iiitkresourcesv2
-      // clientId="tNoLJgic8eDGLWCIyhHAkqiPaoT4XGUQ" // local host 3000
-      authorizationParams={{
-        redirect_uri: window.location.origin,
-      }}
-      useRefreshTokens={true}
-      cacheLocation="localstorage"
-    > */}
-      <Router>
-        <App />
-      </Router>
-    {/* </Auth0Provider> */}
-  </UserProvider>
+  <ErrorBoundary>
+    <UserProvider>
+      {/* <Auth0Provider
+        domain="dev-c7ap44czi23i7ka6.us.auth0.com"
+        clientId="rfSZVd2Iw8bjiJ8NMYvN4ss4Mdn0FkLC" // iiitkresourcesv2
+        // clientId="tNoLJgic8eDGLWCIyhHAkqiPaoT4XGUQ" // local host 3000
+        authorizationParams={{
+         redirect_uri: window.location.origin,
+        }}
+        useRefreshTokens={true}
+        cacheLocation="localstorage"
+      > */}
+        <Router>
+          <App />
+        </Router>
+      {/* </Auth0Provider> */}
+    </UserProvider>
+  </ErrorBoundary>
 );

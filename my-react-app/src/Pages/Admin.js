@@ -109,7 +109,7 @@ function Admin() {
         <p className="text-red-500">{error}</p>
       ) : (
         <>
-          <div className="flex flex-col justify-between">
+          <div className="flex flex-col justify-between ">
             <div className="w-full h-[50%] lg:h-[90%] ">
               <MakeAdmin />
             </div>

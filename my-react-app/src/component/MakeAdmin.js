@@ -82,21 +82,23 @@ function MakeAdmin() {
         <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
           Make Admin
         </h2>
-        <div className="flex items-center space-x-2 mb-4">
+
+        <div className=" m-3 flex flex-col gap-3 items-center sm:flex-row sm:items-start md:gap-4 lg:gap-6">
           <input
             type="text"
             placeholder="Enter user email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="p-2 border border-gray-300 rounded-md flex-grow focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 border border-gray-300 rounded-md w-full sm:flex-grow focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all w-full sm:w-auto"
             onClick={handleClick}
           >
             Search
           </button>
         </div>
+
         {loading && <p className="text-gray-600 text-center">Loading...</p>}
         {error && <p className="text-red-500 text-center">{error}</p>}
         {userData && (

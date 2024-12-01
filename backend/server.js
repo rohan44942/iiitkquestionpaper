@@ -29,6 +29,7 @@ const login = require("./routes/userRoutes");
 const getUserDetails = require("./routes/userRoutes");
 const logout = require("./routes/userRoutes");
 const changeRole = require("./routes/userRoutes");
+const router = require("./routes/userRoutes");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -37,7 +38,6 @@ const allowedOrigins = [
   process.env.FRONTEND_LOCAL_URL, // From .env for development
   process.env.FRONTEND_DEPLOY_URL, // From .env for production
 ];
-
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -148,7 +148,8 @@ app.use("/", logout);
 
 // app.use("/", findUserWithEmail);
 app.use("/", changeRole);
-
+//forgot password
+app.use("/user", router);
 // Error handling middleware to capture errors
 app.use((err, req, res, next) => {
   console.error(err.stack);
