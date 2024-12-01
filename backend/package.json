@@ -12,6 +12,7 @@
   "dependencies": {
     "auth0": "^4.10.0",
     "axios": "^1.7.7",
+    "bcrypt": "^5.1.1",
     "bson": "^6.8.0",
     "cloudinary": "^2.5.0",
     "cookie-parser": "^1.4.7",
