@@ -16,16 +16,15 @@ function Login() {
   //     </div>
   //   );
   // }
-
   return (
-    <div className="flex flex-col items-center justify-center w-full h-screen bg-light-cream">
+    <div className="flex flex-col items-center justify-center w-full bg-light-cream min-h-screen pt-[4rem]">
       {isAuthenticated ? (
         <div className="flex flex-col items-center justify-center space-y-4">
           <Profile />
           <LogoutButton />
         </div>
       ) : (
-        <div className="w-full max-w-lg h-auto mt-10 bg-white p-8 rounded-lg shadow-xl border border-gray-200 mx-6 md:mt-16 lg:mt-20">
+        <div className="w-full max-w-lg bg-white p-8 rounded-lg shadow-xl border border-gray-200 mx-6">
           <h1 className="text-center text-lg text-gray-700 md:text-xl">
             After login, you can upload data and mark your favorite question
             papers and notes (beta).
