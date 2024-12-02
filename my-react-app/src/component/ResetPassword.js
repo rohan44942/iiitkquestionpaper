@@ -153,6 +153,12 @@ const ResetPassword = () => {
                 "Request OTP"
               )}
             </button>
+            <Link
+              to="/login"
+              className="text-blue-500 hover:underline flex flex-row justify-center align-middle mt-[3%]"
+            >
+              Go to Login ?
+            </Link>
           </>
         )}
 

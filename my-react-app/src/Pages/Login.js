@@ -1,4 +1,3 @@
-
 // import { useAuth0 } from "@auth0/auth0-react";
 import LogoutButton from "../component/LogoutButton";
 import Profile from "../component/Profile";
@@ -26,12 +25,12 @@ function Login() {
           <LogoutButton />
         </div>
       ) : (
-        <div className="w-full max-w-lg h-[85%] mt-20 bg-white p-8 rounded-lg shadow-xl border border-gray-200 mx-6">
-          <h1 className="text-center text-xl text-gray-700 ">
+        <div className="w-full max-w-lg h-auto mt-10 bg-white p-8 rounded-lg shadow-xl border border-gray-200 mx-6 md:mt-16 lg:mt-20">
+          <h1 className="text-center text-lg text-gray-700 md:text-xl">
             After login, you can upload data and mark your favorite question
             papers and notes (beta).
           </h1>
-          <div className="h-full mt-[-1rem] ">
+          <div className="mt-4 md:mt-6 lg:mt-8">
             <AuthForm baseUrl={baseUrl} />
           </div>
         </div>

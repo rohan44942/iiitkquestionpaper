@@ -7,28 +7,55 @@ const sendEmail = require("../utils/sendEmail");
 require("dotenv").config();
 const key = process.env.SECRET_KEY;
 
+// const register = async (req, res) => {
+//   const { fullName, email, password } = req.body;
+
+//   try {
+//     // Check if the email already exists
+//     const existingUser = await userModel.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "Email already in use" });
+//     }
+
+//     // Generate salt and hash password using bcrypt
+//     const salt = await bcrypt.genSalt(10);
+//     const hashedPassword = await bcrypt.hash(password, salt);
+
+//     // Create the user in the database
+//     const createdUser = await userModel.create({
+//       fullName,
+//       email,
+//       password: hashedPassword,
+//     });
+
+//     // Send the created user as the response
+//     res
+//       .status(201)
+//       .json({ message: "User created successfully", user: createdUser });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
 const register = async (req, res) => {
   const { fullName, email, password } = req.body;
 
   try {
-    // Check if the email already exists
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "Email already in use" });
     }
 
-    // Generate salt and hash password using bcrypt
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create the user in the database
     const createdUser = await userModel.create({
       fullName,
       email,
       password: hashedPassword,
     });
 
-    // Send the created user as the response
     res
       .status(201)
       .json({ message: "User created successfully", user: createdUser });
@@ -110,7 +137,7 @@ const logout = (req, res) => {
 
 const changeRole = async (req, res) => {
   try {
-    const { email, role } = req.body; // Assume you send email and newRole in the body
+    const { email, role } = req.body; //  send email and newRole in the body
 
     // Find the user by email and update the role
     const user = await userModel.findOneAndUpdate(
