@@ -1,4 +1,3 @@
-// import { useAuth0 } from "@auth0/auth0-react";
 import LogoutButton from "../component/LogoutButton";
 import Profile from "../component/Profile";
 import AuthForm from "../component/AuthForm";
@@ -9,13 +8,6 @@ function Login() {
   const { isAuthenticated } = useContext(UserContext);
   const baseUrl = process.env.REACT_APP_API_URL;
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="flex items-center justify-center w-screen h-screen bg-black">
-  //       <div className="text-white text-3xl">Loading...</div>
-  //     </div>
-  //   );
-  // }
   return (
     <div className="flex flex-col items-center justify-center w-full bg-light-cream min-h-screen pt-[4rem]">
       {isAuthenticated ? (
