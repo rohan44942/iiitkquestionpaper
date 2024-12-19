@@ -1,6 +1,6 @@
 function Error() {
   return (
-    <div style={{ textAlign: "center", padding: "2rem" }}>
+    <div className="text-center pt-[20%] p-2">
       <h1>404 - Page Not Found</h1>
       <p>Oohooo! ...the page you're looking for doesn't exist.</p>
     </div>
