@@ -21,7 +21,7 @@ class ErrorBoundary extends React.Component {
       return (
         <div style={{ textAlign: "center", padding: "2rem" }}>
           <h1>Something went wrong.</h1>
-          <p>We're working to fix the problem. Please try again later.</p>
+          <p>We're working to fix the problem. Please try again later or reload the pagee.</p>
         </div>
       );
     }

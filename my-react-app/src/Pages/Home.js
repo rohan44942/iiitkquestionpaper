@@ -19,12 +19,22 @@ function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [takingtime, setTakingTime]= useState(false);
   const observerRef = useRef();
+  // urls 
   const apiUrl = process.env.REACT_APP_API_URL;
   const admin1 = process.env.REACT_APP_ADMIN1;
   const admin2 = process.env.REACT_APP_ADMIN2;
+  // if wait is longer the ususal 
+  const timeout = ()=>{
+    setTimeout(() => {
+      setTakingTime(true);
+      // show the message or animation of hold one data is coming 
+    }, (10000));
+  }
   const fetchFiles = async (page) => {
     setIsLoading(true);
+    timeout();
     try {
       const response = await fetch(
         `${apiUrl}/api/uploads/?page=${page}&limit=10&year=${yearFilter}&branch=${branchFilter}`,
@@ -150,9 +160,12 @@ function Home() {
         </select>
       </div>
 
-      {isLoading && currentPage === 1 ? (
-        <div className="flex justify-center items-center h-48">
-          <span className="loader">Loading files...</span>
+      {isLoading && currentPage === 1 ? ( !takingtime? <div className="flex justify-center items-center h-48">
+          <span className="loader">Loading files...</span>           
+        </div>: <div className="flex justify-center items-center h-48">
+          <span className="loader">Taking long time please hold on...</span>
+          {/* // time is taking much then it show message hold on more can
+           also show some youtube animation type things on the page  */}
         </div>
       ) : filteredFiles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -218,7 +231,7 @@ function Home() {
                   >
                     <FaDownload className="mr-1" /> Download
                   </a>
-                  <a
+                  <a  
                     href={`${apiUrl}/api/uploads/${file.filename}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -233,7 +246,7 @@ function Home() {
                       onClick={() => handleDelete(file._id, "exam")}
                       className="flex items-center text-red-500 hover:underline"
                     >
-                      <FaTrash className="mr-1" /> Delete
+                      <FaTrash className="mr-1" /> Delete 
                     </button>
                   )}
                 </div>

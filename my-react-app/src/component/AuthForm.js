@@ -160,9 +160,7 @@ const AuthForm = ({ baseUrl }) => {
           Welcome to <span className="text-blue-500">IIIK Resources</span>
         </h3>
         {error && (
-          <p className="text-rose-500 text-center text-sm mb-3">
-            {error}
-          </p>
+          <p className="text-rose-500 text-center text-sm mb-3">{error}</p>
         )}
         <form autoComplete="off" onSubmit={handleSubmit}>
           {!isLogin && (
