@@ -7,36 +7,6 @@ const sendEmail = require("../utils/sendEmail");
 require("dotenv").config();
 const key = process.env.SECRET_KEY;
 
-// const register = async (req, res) => {
-//   const { fullName, email, password } = req.body;
-
-//   try {
-//     // Check if the email already exists
-//     const existingUser = await userModel.findOne({ email });
-//     if (existingUser) {
-//       return res.status(400).json({ message: "Email already in use" });
-//     }
-
-//     // Generate salt and hash password using bcrypt
-//     const salt = await bcrypt.genSalt(10);
-//     const hashedPassword = await bcrypt.hash(password, salt);
-
-//     // Create the user in the database
-//     const createdUser = await userModel.create({
-//       fullName,
-//       email,
-//       password: hashedPassword,
-//     });
-
-//     // Send the created user as the response
-//     res
-//       .status(201)
-//       .json({ message: "User created successfully", user: createdUser });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
 
 const register = async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -65,7 +35,6 @@ const register = async (req, res) => {
   }
 };
 
-
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -74,11 +43,11 @@ const login = async (req, res) => {
     }
     const user = await userModel.findOne({ email });
     if (!user) {
-      return res.status(401).json({ msg: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ msg: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     // Generate JWT
@@ -204,17 +173,16 @@ const sendOtp = async (req, res) => {
 const verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
 
-
   try {
     const user = await userModel.findOne({ email });
-   
+
     if (!user || !user.otp || !user.passwordResetExpires) {
       return res.status(400).json({ message: "Invalid or expired OTP this." });
     }
 
     // Check if the OTP is valid
     const isOtpValid = await bcrypt.compare(otp, user.otp);
-   
+
     if (!isOtpValid || user.passwordResetExpires < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired OTP." });
     }
