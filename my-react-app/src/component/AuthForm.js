@@ -5,8 +5,10 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const AuthForm = ({ baseUrl }) => {
   const [isLogin, setIsLogin] = useState(true); // Toggle between login and register
-  const [passwordVisible, setPasswordVisible] = useState(false); // Password visibility toggle
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false); // Confirm password visibility toggle
+  const [response, setResponse] = useState(false);
+
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -21,70 +23,6 @@ const AuthForm = ({ baseUrl }) => {
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
   const toggleConfirmPasswordVisibility = () =>
     setConfirmPasswordVisible(!confirmPasswordVisible);
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   // Validate inputs
-  //   if (!formData.email || !formData.password) {
-  //     setError("Email and password are required.");
-  //     return;
-  //   }
-
-  //   if (!isLogin && !formData.fullName) {
-  //     setError("Full name is required for registration.");
-  //     return;
-  //   }
-
-  //   if (!isLogin && formData.password !== formData.confirmPassword) {
-  //     setError("Passwords do not match.");
-  //     return;
-  //   }
-
-  //   const url = isLogin ? `${baseUrl}/user/login` : `${baseUrl}/user/register`;
-
-  //   try {
-  //     const response = await fetch(url, {
-  //       method: "POST",
-  //       credentials: "include", // Include cookies for session management
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         fullName: !isLogin ? formData.fullName : undefined, // Only send fullName for registration
-  //         email: formData.email,
-  //         password: formData.password,
-  //       }),
-  //     });
-
-  //     const data = await response.json();
-  //     if (!response.ok) {
-  //       throw new Error("Something went wrong!");
-  //     }
-
-  //     setError(""); // Reset error state
-
-  //     // After login/registration success, update the user context
-  //     if (isLogin) {
-  //       alert("Login successful!");
-  //       updateUser(data.user); // Assuming 'data.user' is returned after login
-  //       setLoginClicked(true);
-  //     } else {
-  //       alert("Registration successful!");
-  //     }
-
-  //     navigate("/");
-  //     // Clear form
-  //     setFormData({
-  //       fullName: "",
-  //       email: "",
-  //       password: "",
-  //       confirmPassword: "",
-  //     });
-  //   } catch (err) {
-  //     setError(err.message);
-  //   }
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -105,7 +43,7 @@ const AuthForm = ({ baseUrl }) => {
     }
 
     const url = isLogin ? `${baseUrl}/user/login` : `${baseUrl}/user/register`;
-
+    setResponse(true);
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -130,6 +68,7 @@ const AuthForm = ({ baseUrl }) => {
       setError("");
 
       if (isLogin) {
+        setResponse(false);
         alert("Login successful!");
         updateUser(data.user);
         setLoginClicked(true);
@@ -235,7 +174,15 @@ const AuthForm = ({ baseUrl }) => {
           <input
             className="w-full bg-blue-500 text-white px-5 py-3 rounded-full cursor-pointer"
             type="submit"
-            value={isLogin ? "Login" : "Register"}
+            value={
+              isLogin
+                ? response
+                  ? "Logging in..."
+                  : "Login"
+                : response
+                ? "Registering..."
+                : "Register"
+            }
           />
         </form>
         <p className="mt-3 text-sm text-center text-gray-500">

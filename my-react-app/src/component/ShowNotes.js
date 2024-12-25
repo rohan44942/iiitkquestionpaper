@@ -3,13 +3,14 @@ import { UserContext } from "../contextapi/userContext";
 
 function ShowNotes() {
   const [notes, setNotes] = useState([]); // All notes
-  const [filteredNotes, setFilteredNotes] = useState([]); // Filtered notes
+  // const [filteredNotes, setFilteredNotes] = useState([]); // Filtered notes
   const [yearFilter, setYearFilter] = useState("");
   const [semesterFilter, setSemesterFilter] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  // const [filtercall, setFiltercall] = useState(false);
   const notesPerPage = 10;
   const apiUrl = process.env.REACT_APP_API_URL;
   const observerRef = useRef();
@@ -17,28 +18,81 @@ function ShowNotes() {
   const admin1 = process.env.REACT_APP_ADMIN1;
   const admin2 = process.env.REACT_APP_ADMIN2;
 
-  const fetchNotes = async (page) => {
+  // const fetchNotes = async (
+  //   currentPage,
+  //   yearFilter,
+  //   semesterFilter,
+  //   notes,
+  //   subjectFilter
+  // ) => {
+  //   if (loading || !hasMore) return;
+
+  //   console.log("inside the fetchnotes", yearFilter);
+  //   setLoading(true);
+  //   try {
+  //     const response = await fetch(
+  //       `${apiUrl}/api/upload/notes?page=${currentPage}&year=${yearFilter}&semester=${semesterFilter}&subject=${subjectFilter}`,
+  //       {
+  //         credentials: "include",
+  //       }
+  //     );
+
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! Status: ${response.status}`);
+  //     }
+
+  //     const data = await response.json();
+  //     console.log(data);
+
+  //     if (!Array.isArray(data.notes)) {
+  //       console.error("Expected notes to be an array but got:", data.notes);
+  //       setHasMore(false);
+  //       return;
+  //     }
+
+  //     setNotes((prevNotes) => [...prevNotes, ...data.notes]);
+
+  //     if (data.notes.length < notesPerPage) {
+  //       setHasMore(false);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching notes:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const fetchNotes = async () => {
+    console.log("function is called");
+    console.log(loading, hasMore);
+    setHasMore(true);
     if (loading || !hasMore) return;
 
+    console.log("inside the fetchnotes", yearFilter);
     setLoading(true);
     try {
-      const response = await fetch(`${apiUrl}/api/upload/notes?page=${page}`, {
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${apiUrl}/api/upload/notes?page=${currentPage}&year=${yearFilter}&semester=${semesterFilter}&subject=${subjectFilter}`,
+        {
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log(data);
 
       if (!Array.isArray(data.notes)) {
         console.error("Expected notes to be an array but got:", data.notes);
+        console.log("this got flase here");
         setHasMore(false);
         return;
       }
-
-      setNotes((prevNotes) => [...prevNotes, ...data.notes]);
+      // setNotes([]);
+      setNotes(data.notes);
 
       if (data.notes.length < notesPerPage) {
         setHasMore(false);
@@ -73,28 +127,32 @@ function ShowNotes() {
   };
 
   useEffect(() => {
-    fetchNotes(currentPage);
-  }, [currentPage]);
+    // fetchNotes(currentPage, yearFilter, semesterFilter, notes, subjectFilter);
+    console.log(yearFilter, "form here");
 
-  useEffect(() => {
-    let filtered = notes;
+    fetchNotes();
+    console.log("after calling fetch notes", yearFilter);
+  }, [currentPage, yearFilter, semesterFilter, subjectFilter]);
 
-    if (yearFilter) {
-      filtered = filtered.filter((note) => note.year === yearFilter);
-    }
+  // useEffect(() => {
+  //   let filtered = notes;
 
-    if (semesterFilter) {
-      filtered = filtered.filter((note) => note.semester === semesterFilter);
-    }
+  //   // if (yearFilter) {
+  //   //   filtered = filtered.filter((note) => note.year === yearFilter);
+  //   // }
 
-    if (subjectFilter) {
-      filtered = filtered.filter((note) =>
-        note.subjectName.toLowerCase().includes(subjectFilter.toLowerCase())
-      );
-    }
+  //   // if (semesterFilter) {
+  //   //   filtered = filtered.filter((note) => note.semester === semesterFilter);
+  //   // }
 
-    setFilteredNotes(filtered);
-  }, [yearFilter, semesterFilter, subjectFilter, notes]);
+  //   // if (subjectFilter) {
+  //   //   filtered = filtered.filter((note) =>
+  //   //     note.subjectName.toLowerCase().includes(subjectFilter.toLowerCase())
+  //   //   );
+  //   // }
+
+  //   setFilteredNotes(filtered);
+  // }, [yearFilter, semesterFilter, subjectFilter, notes]);
 
   const handleScroll = (entries) => {
     const target = entries[0];
@@ -126,6 +184,7 @@ function ShowNotes() {
           onChange={(e) => {
             setYearFilter(e.target.value);
             setCurrentPage(1); // Reset page to 1 when filter changes
+            // setFiltercall(true);
           }}
           className="mr-2 border-gray-400 border-[0.01rem] rounded-md p-2"
         >
@@ -141,6 +200,7 @@ function ShowNotes() {
           onChange={(e) => {
             setSemesterFilter(e.target.value);
             setCurrentPage(1); // Reset page to 1 when filter changes
+            // setFiltercall(true);
           }}
           className="mr-2 border-gray-400 border-[0.01rem] rounded-md p-2"
         >
@@ -155,17 +215,18 @@ function ShowNotes() {
           onChange={(e) => {
             setSubjectFilter(e.target.value);
             setCurrentPage(1); // Reset page to 1 when filter changes
+            // setFiltercall(true);
           }}
           placeholder="Search by Subject Name"
           className="border p-2 rounded md: mt-3"
         />
       </div>
 
-      {filteredNotes.length === 0 ? (
+      {notes.length === 0 ? (
         <p className="text-gray-600">No notes available</p>
       ) : (
         <ul className="space-y-4">
-          {filteredNotes.slice(0, currentPage * notesPerPage).map((note) => (
+          {notes.slice(0, currentPage * notesPerPage).map((note) => (
             <li
               key={note._id}
               className="border p-4 rounded shadow-md hover:shadow-lg transition-shadow duration-300"
