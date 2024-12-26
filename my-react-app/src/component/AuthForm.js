@@ -57,7 +57,8 @@ const AuthForm = ({ baseUrl }) => {
       });
 
       const data = await response.json();
-
+      console.log(data);
+      
       if (!response.ok) {
         if (data.message === "Email already in use") {
           throw new Error("A user with this email already exists.");
@@ -69,8 +70,8 @@ const AuthForm = ({ baseUrl }) => {
 
       if (isLogin) {
         setResponse(false);
-        alert("Login successful!");
-        updateUser(data.user);
+        // alert("Login successful!");
+        // updateUser(data.user);
         setLoginClicked(true);
       } else {
         alert("Registration successful!");

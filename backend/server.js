@@ -116,7 +116,7 @@ app.get("/user/data", async (req, res) => {
   const { email } = req.query; // Extract email from query parameters
   // Validate the input
   if (!email) {
-    return res.status(400).json({ msg: "Please provide a valid email." });
+    return res.status(400).json({ message: "Please provide a valid email." });
   }
 
   try {
@@ -127,7 +127,7 @@ app.get("/user/data", async (req, res) => {
 
     // If no user is found, return a 404 status
     if (!user) {
-      return res.status(404).json({ msg: "User not found." });
+      return res.status(404).json({ message: "User not found." });
     }
 
     // Respond with the user data
@@ -135,7 +135,7 @@ app.get("/user/data", async (req, res) => {
   } catch (err) {
     // Handle any server errors
     console.error("Error finding user with email:", err.message);
-    res.status(500).json({ msg: "An error occurred while fetching the user." });
+    res.status(500).json({ message: "An error occurred while fetching the user." });
   }
 });
 app.use("/", register);

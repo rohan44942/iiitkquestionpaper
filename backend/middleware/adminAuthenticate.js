@@ -4,12 +4,11 @@ const key = process.env.SECRET_KEY;
 
 const adminAuthenticate = (req, res, next) => {
   const token = req.cookies.token;
-  // token =
-  //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IjIwMjFrdWNwMTEwOUBpaWl0a290YS5hYy5pbiIsImlkIjoiNjc0YWQ4MGM3MzllYjY2OWFhMTJkMGY4IiwiaWF0IjoxNzMyOTg4NTk3LCJleHAiOjE3MzI5OTIxOTd9.-rGY6qALvQpNql6gnEPqM2nYXzF71jFXMqs6mm6gJEI";
+  
   if (!token) {
     return res
       .status(401)
-      .json({ msg: "Access Denied: No token admin provided" });
+      .json({ message: "Access Denied: No token admin provided" });
   }
 
   try {
@@ -23,10 +22,10 @@ const adminAuthenticate = (req, res, next) => {
       req.user = decoded; // Attach user info to the request
       next();
     } else {
-      res.status(403).json({ msg: "Access denied" });
+      res.status(403).json({ message: "Access denied" });
     }
   } catch (err) {
-    res.status(403).json({ msg: "Invalid token" });
+    res.status(403).json({ message: "Invalid token" });
   }
 };
 

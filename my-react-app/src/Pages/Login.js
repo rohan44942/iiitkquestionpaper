@@ -9,9 +9,9 @@ function Login() {
   const baseUrl = process.env.REACT_APP_API_URL;
 
   return (
-    <div className="flex flex-col items-center justify-center w-full bg-light-cream min-h-screen pt-[4rem]">
+    <div className="flex flex-col items-center justify-center w-full  bg-gradient-to-r from-gray-100 via-gray-300 to-gray-600 min-h-screen pt-[4rem]">
       {isAuthenticated ? (
-        <div className="flex flex-col items-center justify-center space-y-4">
+        <div className="flex flex-col items-center justify-center space-y-4 mx-10">
           <Profile />
           <LogoutButton />
         </div>

@@ -5,10 +5,8 @@ import React, {
   useRef,
   useContext,
 } from "react";
-import { LazyLoadImage } from "react-lazy-load-image-component";
-import "react-lazy-load-image-component/src/effects/blur.css";
-import { FaDownload, FaEye, FaTrash } from "react-icons/fa";
 import { UserContext } from "../contextapi/userContext";
+import QPaper from "../component/QPaper";
 
 function Home() {
   const { user } = useContext(UserContext); // Context to get user role
@@ -109,11 +107,16 @@ function Home() {
   }
 
   return (
-    <div className="bg-cream pt-20 min-h-screen p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center text-light-green">
-        IIITK Resource Files
+    <div className="min-h-screen p-6 bg-gradient-to-r from-white via-gray-200 to-white">
+      <h1 className="text-4xl font-bold mb-6 text-center text-light-green">
+        <span className="text-zinc-900 block sm:inline">
+          IIITK
+          <span className="block sm:inline"> Resource Files</span>
+        </span>
       </h1>
 
+
+  
       <div className="flex flex-col md:flex-row justify-between mb-4 gap-2">
         <select
           value={yearFilter}
@@ -122,7 +125,7 @@ function Home() {
             setCurrentPage(1);
             setFiles([]);
           }}
-          className="border rounded-lg p-2 bg-white"
+          className="border rounded-2xl p-2 bg-white"
         >
           <option value="">All Years</option>
           <option value="1st sem midterm">1st Sem Mid-Term</option>
@@ -143,7 +146,7 @@ function Home() {
           <option value="8th sem endterm">8th Sem End-Term</option>
           <option value="supplementary sem midterm">Supplementary</option>
         </select>
-
+  
         <select
           value={branchFilter}
           onChange={(e) => {
@@ -151,7 +154,7 @@ function Home() {
             setCurrentPage(1);
             setFiles([]);
           }}
-          className="border rounded-lg p-2 bg-white"
+          className="border rounded-2xl p-2 bg-white"
         >
           <option value="">All Branches</option>
           <option value="cse">Computer Science Engineering</option>
@@ -159,105 +162,37 @@ function Home() {
           <option value="ai">Artificial Intelligence</option>
         </select>
       </div>
-
-      {isLoading && currentPage === 1 ? ( !takingtime? <div className="flex justify-center items-center h-48">
-          <span className="loader">Loading files...</span>           
-        </div>: <div className="flex justify-center items-center h-48">
-          <span className="loader">Taking long time please hold on...</span>
-          {/* // time is taking much then it show message hold on more can
-           also show some youtube animation type things on the page  */}
-        </div>
+  
+      {isLoading && currentPage === 1 ? (
+        !takingtime ? (
+          <div className="flex justify-center items-center h-48">
+            <span className="loader">Loading files...</span>
+          </div>
+        ) : (
+          <div className="flex justify-center items-center h-48">
+            <span className="loader">Taking long time, please hold on...</span>
+            {/* You can add a YouTube-like animation or other feedback here */}
+          </div>
+        )
       ) : filteredFiles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {filteredFiles.map((file, index) => (
-            <div
-              key={file._id}
-              ref={index === filteredFiles.length - 1 ? observer : null}
-              className="border rounded-lg shadow-lg p-6 bg-gray-50 flex flex-col"
-            >
-              <div className="flex-shrink-0 mb-4">
-                {file.filename.endsWith(".pdf") ? (
-                  <iframe
-                    title="PDF Preview"
-                    style={{ display: "block" }}
-                    className="w-full h-48 border-none overflow-hidden"
-                    src={`${apiUrl}/api/uploads/${file.filename}`}
-                    loading="lazy"
-                  />
-                ) : (
-                  <LazyLoadImage
-                    alt={file.filename}
-                    effect="blur"
-                    className="w-full h-48 object-cover cursor-pointer rounded hover:opacity-80 shadow"
-                    src={`${apiUrl}/api/uploads/${file.filename}`}
-                  />
-                )}
-              </div>
-
-              <div className="flex-grow">
-                <h3 className="text-lg font-semibold text-light-green hover:underline">
-                  <a
-                    href={`${apiUrl}/api/uploads/${file.filename}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {file.metadata.fileName || file.filename}
-                  </a>
-                </h3>
-                <p className="text-gray-500 text-sm">
-                  Description: {file.metadata.description || "No description"}
-                </p>
-                <p className="text-gray-500 text-sm">
-                  Year: {file.metadata.year}
-                </p>
-                <p className="text-gray-500 text-sm">
-                  Branch: {file.metadata.branch}
-                </p>
-                <p className="text-gray-500 text-sm">
-                  Uploaded by: {file.metadata.uploadedBy || "A Helper"}
-                </p>
-                <p className="text-gray-500 text-sm">
-                  Uploaded on:{" "}
-                  {new Date(file.uploadDate).toLocaleDateString("en-CA")}
-                </p>
-                <p className="text-gray-500 text-sm">
-                  File Size: {(file.length / 1000).toFixed(2)} Kb
-                </p>
-
-                <div className="mt-4 flex flex-col space-y-2">
-                  <a
-                    href={`${apiUrl}/api/download/${file.filename}`}
-                    className="flex items-center text-blue-500 hover:underline"
-                  >
-                    <FaDownload className="mr-1" /> Download
-                  </a>
-                  <a  
-                    href={`${apiUrl}/api/uploads/${file.filename}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center text-blue-500 hover:underline"
-                  >
-                    <FaEye className="mr-1" /> View
-                  </a>
-                  {(user?.role === "admin" ||
-                    user?.email === admin1 ||
-                    user?.email === admin2) && (
-                    <button
-                      onClick={() => handleDelete(file._id, "exam")}
-                      className="flex items-center text-red-500 hover:underline"
-                    >
-                      <FaTrash className="mr-1" /> Delete 
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+          {filteredFiles.map((file, index) => {
+            const fileData = {
+              file,
+              apiUrl,
+              user,
+              admin1,
+              admin2,
+              observer: index === filteredFiles.length - 1 ? observer : null,
+              handleDelete,
+            };
+            return <QPaper key={file._id} data={fileData} />;
+          })}
         </div>
       ) : (
         <div className="text-center">No files found</div>
       )}
-
+  
       {isLoading && currentPage > 1 && (
         <div className="flex justify-center items-center mt-4">
           <span className="loader">Loading more files...</span>
@@ -265,6 +200,7 @@ function Home() {
       )}
     </div>
   );
+  
 }
 
 export default Home;

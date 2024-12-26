@@ -39,7 +39,7 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ msg: "Email and password are required" });
+      return res.status(400).json({ message: "Email and password are required" });
     }
     const user = await userModel.findOne({ email });
     if (!user) {
@@ -63,34 +63,36 @@ const login = async (req, res) => {
       .status(200)
       .cookie("token", token, {
         httpOnly: true, // Prevent access from client-side scripts
-        secure: process.env.NODE_ENV === "production", // Send only over HTTPS when in production
+        // secure: process.env.NODE_ENV === "production", // Send only over HTTPS when in production
+        secure:true,
         maxAge: 60 * 60 * 1000, // 1 hour only
         sameSite: "None",
       })
-      .json({ msg: "Login successful", token: token });
+      .json({ message: "Login successful", token: token });
   } catch (err) {
     console.error("Login failed   ", err);
-    res.status(500).json({ msg: "Server error" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
+//user/me wala route
 const getUserDetails = async (req, res) => {
   try {
     if (!req.user || !req.user.id) {
-      return res.status(400).json({ msg: "Invalid user data" });
+      return res.status(400).json({ message: "Invalid user data" });
     }
 
     const user = await userModel
       .findById(req.user.id)
       .select("fullName email profilePic role"); // Exclude password
     if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     res.status(200).json({ user });
   } catch (err) {
     console.error("Error fetching user details:", err);
-    res.status(500).json({ msg: "Server error" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -101,7 +103,7 @@ const logout = (req, res) => {
     secure: true, // Use secure cookies in production
     sameSite: "None",
   });
-  res.status(200).json({ msg: "Logged out successfully" });
+  res.status(200).json({ message: "Logged out successfully" });
 };
 
 const changeRole = async (req, res) => {
