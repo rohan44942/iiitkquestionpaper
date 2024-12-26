@@ -19,6 +19,7 @@ export const UserProvider = ({ children }) => {
 
   // Check authentication status on app load
   useEffect(() => {
+    
     const checkAuthStatus = async () => {
       try {
         const response = await fetch(`${apiurl}/user/me`, {

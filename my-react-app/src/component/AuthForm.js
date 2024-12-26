@@ -70,7 +70,7 @@ const AuthForm = ({ baseUrl }) => {
       if (isLogin) {
         setResponse(false);
         alert("Login successful!");
-        updateUser(data.user);
+        // updateUser(data.user);
         setLoginClicked(true);
       } else {
         alert("Registration successful!");
