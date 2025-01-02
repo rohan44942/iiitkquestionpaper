@@ -11,7 +11,7 @@ branch, and subject.
 - **Frontend:** React.js
 - **Backend:** Node.js, Express.js
 - **Database:** MongoDB (with GridFS for file storage)
-- **Authentication:** Auth0
+- **Authentication:** JWT token
 - **Styling:** Tailwind CSS
 - **File Uploading:** Multer and Multer-GridFS-Storage
 
