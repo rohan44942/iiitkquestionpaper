@@ -116,7 +116,7 @@ function Admin() {
   };
 
   return (
-    <div className="bg-gray-50 pt-20 min-h-screen p-6">
+    <div className="bg-gradient-to-r from-gray-100 via-gray-300 to-gray-600 pt-20 min-h-screen p-6">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Admin Dashboard</h1>
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 space-y-4 md:space-y-0 md:space-x-4">
         <Profile />
@@ -128,11 +128,12 @@ function Admin() {
       ) : error ? (
         <UnexpectedError>{error}</UnexpectedError>
       ) : (
-        <div className="flex flex-col justify-between">
-          <div className="w-full h-[50%] lg:h-[90%] ">
+        <div className="flex flex-col h-full">
+          <div className="w-full h-full lg:h-auto flex-shrink-0">
             <MakeAdmin />
           </div>
-          <div className="w-full">
+
+          <div className="w-full flex-grow p-6">
             <h2 className="text-3xl font-semibold text-gray-700 mb-4">
               Pending Exam Uploads
             </h2>

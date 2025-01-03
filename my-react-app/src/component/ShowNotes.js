@@ -18,57 +18,11 @@ function ShowNotes() {
   const admin1 = process.env.REACT_APP_ADMIN1;
   const admin2 = process.env.REACT_APP_ADMIN2;
 
-  // const fetchNotes = async (
-  //   currentPage,
-  //   yearFilter,
-  //   semesterFilter,
-  //   notes,
-  //   subjectFilter
-  // ) => {
-  //   if (loading || !hasMore) return;
-
-  //   console.log("inside the fetchnotes", yearFilter);
-  //   setLoading(true);
-  //   try {
-  //     const response = await fetch(
-  //       `${apiUrl}/api/upload/notes?page=${currentPage}&year=${yearFilter}&semester=${semesterFilter}&subject=${subjectFilter}`,
-  //       {
-  //         credentials: "include",
-  //       }
-  //     );
-
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! Status: ${response.status}`);
-  //     }
-
-  //     const data = await response.json();
-  //     console.log(data);
-
-  //     if (!Array.isArray(data.notes)) {
-  //       console.error("Expected notes to be an array but got:", data.notes);
-  //       setHasMore(false);
-  //       return;
-  //     }
-
-  //     setNotes((prevNotes) => [...prevNotes, ...data.notes]);
-
-  //     if (data.notes.length < notesPerPage) {
-  //       setHasMore(false);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching notes:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const fetchNotes = async () => {
-    console.log("function is called");
-    console.log(loading, hasMore);
+
     setHasMore(true);
     if (loading || !hasMore) return;
 
-    console.log("inside the fetchnotes", yearFilter);
     setLoading(true);
     try {
       const response = await fetch(
@@ -83,11 +37,8 @@ function ShowNotes() {
       }
 
       const data = await response.json();
-      console.log(data);
 
       if (!Array.isArray(data.notes)) {
-        console.error("Expected notes to be an array but got:", data.notes);
-        console.log("this got flase here");
         setHasMore(false);
         return;
       }
@@ -128,32 +79,10 @@ function ShowNotes() {
 
   useEffect(() => {
     // fetchNotes(currentPage, yearFilter, semesterFilter, notes, subjectFilter);
-    console.log(yearFilter, "form here");
-
     fetchNotes();
-    console.log("after calling fetch notes", yearFilter);
   }, [currentPage, yearFilter, semesterFilter, subjectFilter]);
 
-  // useEffect(() => {
-  //   let filtered = notes;
-
-  //   // if (yearFilter) {
-  //   //   filtered = filtered.filter((note) => note.year === yearFilter);
-  //   // }
-
-  //   // if (semesterFilter) {
-  //   //   filtered = filtered.filter((note) => note.semester === semesterFilter);
-  //   // }
-
-  //   // if (subjectFilter) {
-  //   //   filtered = filtered.filter((note) =>
-  //   //     note.subjectName.toLowerCase().includes(subjectFilter.toLowerCase())
-  //   //   );
-  //   // }
-
-  //   setFilteredNotes(filtered);
-  // }, [yearFilter, semesterFilter, subjectFilter, notes]);
-
+  
   const handleScroll = (entries) => {
     const target = entries[0];
     if (target.isIntersecting && !loading) {
@@ -175,7 +104,7 @@ function ShowNotes() {
   }, [loading]);
 
   return (
-    <div className="pt-20 max-w-3xl mx-auto p-6">
+    <div className="pt-20 max-w-3xl mx-auto p-6 bg-gradient-to-r from-white via-gray-200 to-white">
       <h2 className="text-2xl font-bold mb-4">Notes</h2>
 
       <div className="mb-4">
@@ -229,7 +158,7 @@ function ShowNotes() {
           {notes.slice(0, currentPage * notesPerPage).map((note) => (
             <li
               key={note._id}
-              className="border p-4 rounded shadow-md hover:shadow-lg transition-shadow duration-300"
+              className="border bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow duration-300"
             >
               <h3 className="text-xl font-semibold">{note.subjectName}</h3>
               <p className="text-gray-700">

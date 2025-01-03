@@ -1,130 +1,103 @@
 import { useState, useContext, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-// import { useAuth0 } from "@auth0/auth0-react";
 import { UserContext } from "../contextapi/userContext";
 
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import SpeakerNotesOutlinedIcon from '@mui/icons-material/SpeakerNotesOutlined';
+import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
+import DriveFolderUploadOutlinedIcon from '@mui/icons-material/DriveFolderUploadOutlined';
+import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
+import MenuIcon from '@mui/icons-material/Menu'; // Hamburger icon
+import CloseIcon from "@mui/icons-material/Close";
 function Navbar() {
-  // const { isAuthenticated, user } = useAuth0();
-  // own authentication
   const { isAuthenticated, user } = useContext(UserContext);
-  // console.log(isAuthenticated);
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
+
   useEffect(() => {
-    // This will ensure the navbar is re-rendered when the user logs in or out
     if (isAuthenticated) {
-      // console.log("authentication ", isAuthenticated);
-      setMenuOpen(false); // Close menu on login
+      setMenuOpen(false);
     }
   }, [isAuthenticated]);
-  
+
   return (
-    <nav className="fixed top-0 left-0 w-screen flex justify-between items-center py-4 px-6 bg-gray-100 shadow-lg z-50">
-      <NavLink exact to="/">
-        <div className="text-xl font-bold text-gray-700">Log.oO</div>
-      </NavLink>
+    <nav className={`fixed top-0 left-0 md:h-full lg:h-full lg:rounded-none w-16 md:bg-white  text-black flex flex-col items-center py-4 border-slate-200 border-r-2 shadow-lg z-50 ${menuOpen ? 'w-50 h-full bg-white ' : 'w-16 ml-1 mt-1 bg-white rounded-full '}`}>
+      {/* Hamburger Icon for Mobile */}
+      <div className="block md:hidden ">
+      {menuOpen ? (
+          <CloseIcon
+            className="text-3xl text-blue-600 "
+            onClick={toggleMenu}
+          />
+        ) : (
+          <MenuIcon
+            className="text-2xl text-blue-600"
+            onClick={toggleMenu}
+          />
+        )}
+      </div>
 
-      <button className="text-gray-600 text-2xl md:hidden" onClick={toggleMenu}>
-        ☰
-      </button>
-
-      <ul
-        className={`md:flex md:items-center gap-8 absolute md:static top-16 right-0 bg-gray-100 md:bg-transparent transition-transform duration-300 ease-in-out ${
-          menuOpen
-            ? "flex flex-col justify-center  items-center right-0 w-screen  pb-5 md:pb-0"
-            : "hidden"
-        } md:flex-row md:w-auto `}
-      >
-        <li>
-          <NavLink
-            exact
-            to="/"
-            activeClassName="active-link"
-            className="block text-gray-600 text-lg font-medium hover:text-red-500"
-            onClick={toggleMenu}
-          >
-            Home
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/about"
-            activeClassName="active-link"
-            className="block text-gray-600 text-lg font-medium hover:text-red-500"
-            onClick={toggleMenu}
-          >
-            About
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/notes"
-            activeClassName="active-link"
-            className="block text-gray-600 text-lg font-medium hover:text-red-500"
-            onClick={toggleMenu}
-          >
-            Notes
-          </NavLink>
-        </li>
-        <li>
-          {isAuthenticated ? (
-            user.email === "2021kucp1109@iiitkota.ac.in" ||
-            user.email === "2021kuec2066@iiitkota.ac.in" ||
-            user.role === "admin" ? (
-              <NavLink
-                to="/admin"
-                activeClassName="active-link"
-                className="block text-gray-600 text-lg font-medium hover:text-red-500"
-                onClick={toggleMenu}
-              >
-                Admin
-              </NavLink>
-            ) : (
-              <NavLink
-                to="/user"
-                activeClassName="active-link"
-                className="block text-gray-600 text-lg font-medium hover:text-red-500"
-                onClick={toggleMenu}
-              >
-                User
-              </NavLink>
-            )
-          ) : (
+      {/* Menu Items */}
+      <div className={`${menuOpen ? 'block' : 'hidden'} md:block w-full `}>
+        <ul className="flex flex-col items-center mt-16 gap-6">
+          <li>
             <NavLink
-              to="/login"
-              activeClassName="active-link"
-              className="block text-gray-600 text-lg font-medium hover:text-red-500"
-              onClick={toggleMenu}
+              to="/"
+              className={({ isActive }) =>
+                `flex flex-col items-center w-full py-2 hover:bg-blue-100 transition-colors ${
+                  isActive ? 'text-blue-600 font-extrabold' : ''
+                }`
+              }
             >
-              Login
+              <span className="text-2xl"><HomeOutlinedIcon className="text-blue-500" /></span>
+              <span className="text-sm mt-1">Home</span>
             </NavLink>
-          )}
-        </li>
-        {isAuthenticated ? (
+          </li>
+          <li>
+            <NavLink
+              to="/notes"
+              className={({ isActive }) =>
+                `flex flex-col items-center w-full py-2 hover:bg-blue-100 transition-colors ${
+                  isActive ? 'text-blue-600 font-extrabold' : ''
+                }`
+              }
+            >
+              <span className="text-2xl"><SpeakerNotesOutlinedIcon className="text-blue-500" /></span>
+              <span className="text-sm mt-1">Notes</span>
+            </NavLink>
+          </li>
+
           <li>
             <NavLink
               to="/upload"
-              activeClassName="active-link"
-              className="block text-gray-600 text-lg font-medium hover:text-red-500"
-              onClick={toggleMenu}
+              className={({ isActive }) =>
+                `flex flex-col items-center w-full py-2 hover:bg-blue-100 transition-colors ${
+                  isActive ? 'text-blue-600 font-extrabold' : ''
+                }`
+              }
             >
-              Upload
+              <span className="text-2xl"><DriveFolderUploadOutlinedIcon className="text-blue-500" /></span>
+              <span className="text-sm mt-1">Upload</span>
             </NavLink>
           </li>
-        ) : (
+
           <li>
             <NavLink
-              to="/login"
-              activeClassName="active-link"
-              className="block text-gray-600 text-lg font-medium hover:text-red-500 "
-              onClick={toggleMenu}
+              to="/about"
+              className={({ isActive }) =>
+                `flex flex-col items-center w-full py-2 hover:bg-blue-100 transition-colors ${
+                  isActive ? 'text-blue-600 font-extrabold' : ''
+                }`
+              }
             >
-              Upload
+              <span className="text-2xl"><InfoOutlinedIcon className="text-blue-500" /></span>
+              <span className="text-sm mt-1">About</span>
             </NavLink>
           </li>
-        )}
-        {isAuthenticated}
-      </ul>
+        </ul>
+      </div>
     </nav>
   );
 }

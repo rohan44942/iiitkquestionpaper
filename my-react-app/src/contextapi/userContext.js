@@ -22,19 +22,23 @@ export const UserProvider = ({ children }) => {
     
     const checkAuthStatus = async () => {
       try {
+               
         const response = await fetch(`${apiurl}/user/me`, {
           method: "GET",
           credentials: "include", // Include cookies in request
         });
-
+        console.log(response);
+        
         if (!response.ok) throw new Error("Failed to authenticate");
 
         const data = await response.json();
         if (data.user) {
+          console.log(data.user);
+          
           updateUser(data.user);
         }
       } catch (err) {
-        console.error("Error checking authentication status:", err);
+        console.log(err);
         updateUser(null); // Clear user on error
       } finally {
         setIsLoading(false);
