@@ -10,10 +10,15 @@ import About from "./Pages/About";
 import Notes from "./Pages/Notes";
 import Admin from "./Pages/Admin";
 import ResetPassword from "./component/ResetPassword";
+import Footer from "./component/Footer";
+import Header from "./component/Header";
 
 const App = () => {
   return (
     <div className="flex-row">
+      <div className="bg-transparent">
+       <Header/>
+      </div>
       <div className="">
         <Navbar />
       </div>     
@@ -29,6 +34,9 @@ const App = () => {
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<Error />} />
         </Routes>
+      </div>
+      <div className=" h-[3rem] pt-2 ">
+       <Footer/>
       </div>
     </div>
   );

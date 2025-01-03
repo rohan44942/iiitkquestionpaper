@@ -77,7 +77,7 @@ function MakeAdmin() {
   };
 
   return (
-    <div className="flex flex-col w-full items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex flex-col w-full items-center justify-center p-[10%]">
       <div className="w-full max-w-md  h-full rounded-lg shadow-md p-6 bg-slate-400">
         <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
           Make Admin
