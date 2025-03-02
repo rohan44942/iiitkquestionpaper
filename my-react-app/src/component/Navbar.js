@@ -5,14 +5,11 @@ import { UserContext } from "../contextapi/userContext";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SpeakerNotesOutlinedIcon from "@mui/icons-material/SpeakerNotesOutlined";
-import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
-import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
-import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import MenuIcon from "@mui/icons-material/Menu"; // Hamburger icon
 import CloseIcon from "@mui/icons-material/Close";
 function Navbar() {
-  const { isAuthenticated, user } = useContext(UserContext);
+  const { isAuthenticated } = useContext(UserContext);
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
 

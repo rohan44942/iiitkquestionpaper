@@ -17,7 +17,7 @@ const AuthForm = ({ baseUrl }) => {
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { updateUser, setLoginClicked } = useContext(UserContext);
+  const {setLoginClicked } = useContext(UserContext);
 
   const toggleForm = () => setIsLogin(!isLogin);
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);

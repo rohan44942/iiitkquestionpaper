@@ -93,7 +93,7 @@ function Home() {
 
   useEffect(() => {
     fetchFiles(currentPage);
-  }, [currentPage, yearFilter, branchFilter]);
+  }, [currentPage, yearFilter, branchFilter, fetchFiles]);
 
   const filteredFiles = files.filter((file) => {
     return (
@@ -168,7 +168,9 @@ function Home() {
           </div>
         ) : (
           <div className="flex justify-center items-center h-48">
-            <span className="loader">Taking a bit longer time, please hold on...</span>
+            <span className="loader">
+              Taking a bit longer time, please hold on...
+            </span>
             {/* You can add a YouTube-like animation or other feedback here */}
           </div>
         )

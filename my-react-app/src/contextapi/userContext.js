@@ -19,22 +19,20 @@ export const UserProvider = ({ children }) => {
 
   // Check authentication status on app load
   useEffect(() => {
-    
     const checkAuthStatus = async () => {
       try {
-               
         const response = await fetch(`${apiurl}/user/me`, {
           method: "GET",
-          credentials: "include", // Include cookies in request
+          credentials: "include",
         });
         // console.log(response);
-        
+
         if (!response.ok) throw new Error("Failed to authenticate");
 
         const data = await response.json();
         if (data.user) {
           // console.log(data.user);
-          
+
           updateUser(data.user);
         }
       } catch (err) {
@@ -46,7 +44,7 @@ export const UserProvider = ({ children }) => {
     };
 
     checkAuthStatus();
-  }, [loginClicked]);
+  }, [loginClicked, apiurl]);
 
   // Logout function
   const logout = async () => {

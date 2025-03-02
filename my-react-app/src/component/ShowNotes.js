@@ -18,42 +18,6 @@ function ShowNotes() {
   const admin1 = process.env.REACT_APP_ADMIN1;
   const admin2 = process.env.REACT_APP_ADMIN2;
 
-  const fetchNotes = async () => {
-    setHasMore(true);
-    if (loading || !hasMore) return;
-
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${apiUrl}/api/upload/notes?page=${currentPage}&year=${yearFilter}&semester=${semesterFilter}&subject=${subjectFilter}`,
-        {
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!Array.isArray(data.notes)) {
-        setHasMore(false);
-        return;
-      }
-      // setNotes([]);
-      setNotes((prev) => [...prev, ...data.notes]);
-
-      if (data.notes.length < notesPerPage) {
-        setHasMore(false);
-      }
-    } catch (error) {
-      console.error("Error fetching notes:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDelete = async (id, type) => {
     if (window.confirm("Are you sure you want to delete this note?")) {
       try {
@@ -77,29 +41,84 @@ function ShowNotes() {
   };
 
   useEffect(() => {
-    // fetchNotes(currentPage, yearFilter, semesterFilter, notes, subjectFilter);
-    fetchNotes();
-  }, [currentPage, yearFilter, semesterFilter, subjectFilter]);
+    const fetchData = async () => {
+      if (loading || !hasMore) return;
 
-  const handleScroll = (entries) => {
-    const target = entries[0];
-    if (target.isIntersecting && !loading) {
-      setCurrentPage((prev) => prev + 1); // Increment page on scroll
-    }
-  };
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${apiUrl}/api/upload/notes?page=${currentPage}&year=${yearFilter}&semester=${semesterFilter}&subject=${subjectFilter}`,
+          {
+            credentials: "include",
+          }
+        );
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(handleScroll);
-    if (observerRef.current) {
-      observer.observe(observerRef.current);
-    }
-    if (loading || !hasMore) return;
-    return () => {
-      if (observerRef.current) {
-        observer.unobserve(observerRef.current);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data.notes)) {
+          setHasMore(false);
+          return;
+        }
+
+        setNotes((prev) => [...prev, ...data.notes]);
+
+        if (data.notes.length < notesPerPage) {
+          setHasMore(false);
+        } else {
+          setHasMore(true);
+        }
+      } catch (error) {
+        console.error("Error fetching notes:", error);
+      } finally {
+        setLoading(false);
       }
     };
-  }, [loading]);
+
+    fetchData();
+  }, [
+    currentPage,
+    yearFilter,
+    semesterFilter,
+    subjectFilter,
+    loading,
+    hasMore,
+    apiUrl,
+  ]);
+
+  useEffect(() => {
+    if (loading || !hasMore) return;
+  
+    const target = observerRef.current; 
+  
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !loading) {
+          setCurrentPage((prev) => prev + 1);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "100px",
+        threshold: 0.1,
+      }
+    );
+  
+    if (target) {
+      observer.observe(target);
+    }
+  
+    return () => {
+      if (target) {
+        observer.unobserve(target);
+      }
+      observer.disconnect();
+    };
+  }, [loading, hasMore]);
+  
 
   return (
     <div className="sm:min-h-[84vh] min-h-[78vh]  pt-20  max-w-3xl mx-auto p-6 bg-gradient-to-r from-white via-gray-200 to-white  ">
