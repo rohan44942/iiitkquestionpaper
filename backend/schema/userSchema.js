@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
     maxlength: 128,
   },
   profilePic: {
-    type: String, // Use a URL or file path
+    type: String, 
     default: null,
   },
   role: {

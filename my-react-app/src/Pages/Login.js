@@ -16,13 +16,12 @@ function Login() {
           <LogoutButton />
         </div>
       ) : (
-        <div className="mx-10 max-w-lg bg-white p-8 rounded-lg shadow-xl border border-gray-200">
-
+        <div className="mx-8 max-w-lg bg-white sm:p-8 p-5 rounded-lg shadow-xl border border-gray-200">
           <h1 className="text-center text-lg text-gray-700 md:text-xl">
             After login, you can upload data and mark your favorite question
             papers and notes (beta).
           </h1>
-          <div className="mt-4 md:mt-6 lg:mt-8">
+          <div className="mt-4 md:mt-6 lg:mt-8 ">
             <AuthForm baseUrl={baseUrl} />
           </div>
         </div>

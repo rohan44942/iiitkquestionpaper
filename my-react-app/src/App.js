@@ -15,14 +15,14 @@ import Header from "./component/Header";
 
 const App = () => {
   return (
-    <div className="flex-row">
+    <div className="flex-row h-screen ">
       <div className="bg-transparent">
-       <Header/>
+        <Header />
+        <div className="">
+          <Navbar />
+        </div>
       </div>
-      <div className="">
-        <Navbar />
-      </div>     
-      <div className=" lg:ml-16 md:ml-16 transition-all">
+      <div className=" lg:ml-20 md:ml-16 transition-all">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -36,7 +36,7 @@ const App = () => {
         </Routes>
       </div>
       <div className=" h-[3rem] pt-2 ">
-       <Footer/>
+        <Footer />
       </div>
     </div>
   );

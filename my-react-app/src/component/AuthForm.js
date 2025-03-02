@@ -57,8 +57,8 @@ const AuthForm = ({ baseUrl }) => {
       });
 
       const data = await response.json();
-      console.log(data);
-      
+      // console.log(data);
+
       if (!response.ok) {
         if (data.message === "Email already in use") {
           throw new Error("A user with this email already exists.");
@@ -85,6 +85,7 @@ const AuthForm = ({ baseUrl }) => {
         confirmPassword: "",
       });
     } catch (err) {
+      setIsLogin(false);
       setError(err.message);
     }
   };
@@ -94,8 +95,8 @@ const AuthForm = ({ baseUrl }) => {
   }, [isLogin]);
 
   return (
-    <div className="flex items-center justify-center h-full w-full p-6 bg-light-cream">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg border border-gray-200">
+    <div className="flex items-center justify-center h-full w-full sm:p-6  bg-light-cream">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg border sm:p-6 p-1 border-gray-200">
         <h3 className="text-3xl font-semibold text-center text-gray-700 mb-6">
           Welcome to <span className="text-blue-500">IIIK Resources</span>
         </h3>
@@ -184,6 +185,7 @@ const AuthForm = ({ baseUrl }) => {
                 ? "Registering..."
                 : "Register"
             }
+            disabled={response}
           />
         </form>
         <p className="mt-3 text-sm text-center text-gray-500">

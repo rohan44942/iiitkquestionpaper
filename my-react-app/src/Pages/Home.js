@@ -17,19 +17,19 @@ function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [takingtime, setTakingTime]= useState(false);
+  const [takingtime, setTakingTime] = useState(false);
   const observerRef = useRef();
-  // urls 
+  // urls
   const apiUrl = process.env.REACT_APP_API_URL;
   const admin1 = process.env.REACT_APP_ADMIN1;
   const admin2 = process.env.REACT_APP_ADMIN2;
-  // if wait is longer the ususal 
-  const timeout = ()=>{
+  // if wait is longer the ususal
+  const timeout = () => {
     setTimeout(() => {
       setTakingTime(true);
-      // show the message or animation of hold one data is coming 
-    }, (10000));
-  }
+      // show the message or animation of hold one data is coming
+    }, 100000);
+  };
   const fetchFiles = async (page) => {
     setIsLoading(true);
     timeout();
@@ -107,7 +107,7 @@ function Home() {
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-r from-white via-gray-200 to-white">
+    <div className="min-h-screen p-6 bg-gradient-to-r from-white via-gray-200 to-white overflow-scroll ">
       <h1 className="text-4xl font-bold mb-6 text-center text-light-green">
         <span className="text-zinc-900 block sm:inline">
           IIITK
@@ -115,8 +115,6 @@ function Home() {
         </span>
       </h1>
 
-
-  
       <div className="flex flex-col md:flex-row justify-between mb-4 gap-2">
         <select
           value={yearFilter}
@@ -146,7 +144,7 @@ function Home() {
           <option value="8th sem endterm">8th Sem End-Term</option>
           <option value="supplementary sem midterm">Supplementary</option>
         </select>
-  
+
         <select
           value={branchFilter}
           onChange={(e) => {
@@ -157,12 +155,12 @@ function Home() {
           className="border rounded-2xl p-2 bg-white"
         >
           <option value="">All Branches</option>
-          <option value="cse">Computer Science Engineering</option>
-          <option value="ece">Electronics and Communication Engineering</option>
-          <option value="ai">Artificial Intelligence</option>
+          <option value="CSE">Computer Science Engineering</option>
+          <option value="ECE">Electronics and Communication Engineering</option>
+          <option value="AI">Artificial Intelligence</option>
         </select>
       </div>
-  
+
       {isLoading && currentPage === 1 ? (
         !takingtime ? (
           <div className="flex justify-center items-center h-48">
@@ -170,7 +168,7 @@ function Home() {
           </div>
         ) : (
           <div className="flex justify-center items-center h-48">
-            <span className="loader">Taking long time, please hold on...</span>
+            <span className="loader">Taking a bit longer time, please hold on...</span>
             {/* You can add a YouTube-like animation or other feedback here */}
           </div>
         )
@@ -192,7 +190,7 @@ function Home() {
       ) : (
         <div className="text-center">No files found</div>
       )}
-  
+
       {isLoading && currentPage > 1 && (
         <div className="flex justify-center items-center mt-4">
           <span className="loader">Loading more files...</span>
@@ -200,7 +198,6 @@ function Home() {
       )}
     </div>
   );
-  
 }
 
 export default Home;

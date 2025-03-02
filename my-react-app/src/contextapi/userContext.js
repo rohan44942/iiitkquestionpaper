@@ -27,13 +27,13 @@ export const UserProvider = ({ children }) => {
           method: "GET",
           credentials: "include", // Include cookies in request
         });
-        console.log(response);
+        // console.log(response);
         
         if (!response.ok) throw new Error("Failed to authenticate");
 
         const data = await response.json();
         if (data.user) {
-          console.log(data.user);
+          // console.log(data.user);
           
           updateUser(data.user);
         }

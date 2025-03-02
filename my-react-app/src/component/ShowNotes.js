@@ -19,7 +19,6 @@ function ShowNotes() {
   const admin2 = process.env.REACT_APP_ADMIN2;
 
   const fetchNotes = async () => {
-
     setHasMore(true);
     if (loading || !hasMore) return;
 
@@ -43,7 +42,7 @@ function ShowNotes() {
         return;
       }
       // setNotes([]);
-      setNotes(data.notes);
+      setNotes((prev) => [...prev, ...data.notes]);
 
       if (data.notes.length < notesPerPage) {
         setHasMore(false);
@@ -82,7 +81,6 @@ function ShowNotes() {
     fetchNotes();
   }, [currentPage, yearFilter, semesterFilter, subjectFilter]);
 
-  
   const handleScroll = (entries) => {
     const target = entries[0];
     if (target.isIntersecting && !loading) {
@@ -95,7 +93,7 @@ function ShowNotes() {
     if (observerRef.current) {
       observer.observe(observerRef.current);
     }
-
+    if (loading || !hasMore) return;
     return () => {
       if (observerRef.current) {
         observer.unobserve(observerRef.current);
@@ -104,7 +102,7 @@ function ShowNotes() {
   }, [loading]);
 
   return (
-    <div className="pt-20 max-w-3xl mx-auto p-6 bg-gradient-to-r from-white via-gray-200 to-white">
+    <div className="sm:min-h-[84vh] min-h-[78vh]  pt-20  max-w-3xl mx-auto p-6 bg-gradient-to-r from-white via-gray-200 to-white  ">
       <h2 className="text-2xl font-bold mb-4">Notes</h2>
 
       <div className="mb-4">
