@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useRef } from "react";
 
 // Create context
 export const UserContext = createContext();
@@ -8,7 +8,7 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [loginClicked, setLoginClicked] = useState(false);
+  const [setLoginClicked] = useState(false);
   const apiurl = process.env.REACT_APP_API_URL;
 
   // Function to update user state and authentication status
@@ -17,34 +17,32 @@ export const UserProvider = ({ children }) => {
     setIsAuthenticated(!!userData); // True if userData exists
   };
 
-  // Check authentication status on app load
+  const apiurlRef = useRef(apiurl);
+
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch(`${apiurl}/user/me`, {
+        const response = await fetch(`${apiurlRef.current}/user/me`, {
           method: "GET",
           credentials: "include",
         });
-        // console.log(response);
 
         if (!response.ok) throw new Error("Failed to authenticate");
 
         const data = await response.json();
         if (data.user) {
-          // console.log(data.user);
-
           updateUser(data.user);
         }
       } catch (err) {
         console.log(err);
-        updateUser(null); // Clear user on error
+        updateUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
     checkAuthStatus();
-  }, [loginClicked, apiurl]);
+  }, []);
 
   // Logout function
   const logout = async () => {

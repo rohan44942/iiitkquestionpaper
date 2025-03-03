@@ -30,26 +30,29 @@ function Home() {
       // show the message or animation of hold one data is coming
     }, 100000);
   };
-  const fetchFiles = async (page) => {
-    setIsLoading(true);
-    timeout();
-    try {
-      const response = await fetch(
-        `${apiUrl}/api/uploads/?page=${page}&limit=10&year=${yearFilter}&branch=${branchFilter}`,
-        {
-          credentials: "include",
-        }
-      );
-      if (!response.ok) throw new Error("Failed to fetch files");
-      const data = await response.json();
-      setFiles((prev) => [...prev, ...data.files]);
-      setHasMore(data.files.length > 0);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const fetchFiles = useCallback(
+    async (page) => {
+      setIsLoading(true);
+      timeout();
+      try {
+        const response = await fetch(
+          `${apiUrl}/api/uploads/?page=${page}&limit=10&year=${yearFilter}&branch=${branchFilter}`,
+          {
+            credentials: "include",
+          }
+        );
+        if (!response.ok) throw new Error("Failed to fetch files");
+        const data = await response.json();
+        setFiles((prev) => [...prev, ...data.files]);
+        setHasMore(data.files.length > 0);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [apiUrl, yearFilter, branchFilter]
+  );
 
   const handleDelete = async (id, type) => {
     if (window.confirm("Are you sure you want to delete this file?")) {
@@ -91,9 +94,12 @@ function Home() {
     [isLoading, hasMore]
   );
 
+  // useEffect(() => {
+  //   fetchFiles(currentPage);
+  // }, [currentPage, yearFilter, branchFilter]);
   useEffect(() => {
     fetchFiles(currentPage);
-  }, [currentPage, yearFilter, branchFilter, fetchFiles]);
+  }, [currentPage, fetchFiles]);
 
   const filteredFiles = files.filter((file) => {
     return (

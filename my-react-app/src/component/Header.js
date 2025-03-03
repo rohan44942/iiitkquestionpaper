@@ -32,7 +32,7 @@ const Header = () => {
             <NavLink
               to="/user"
               className={({ isActive }) =>
-                `flex flex-col items-center w-full py-2 hover:bg-blue-100 transition-colors ${
+                `flex flex-col items-center w-full  mt-1 px-3 hover:bg-blue-100 hover:border-spacing-2 hover:border hover:rounded-sm transition-colors  ${
                   isActive ? "text-blue-600 font-extrabold" : ""
                 }`
               }

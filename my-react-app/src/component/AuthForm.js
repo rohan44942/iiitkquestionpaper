@@ -17,7 +17,7 @@ const AuthForm = ({ baseUrl }) => {
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const {setLoginClicked } = useContext(UserContext);
+  const { setLoginClicked } = useContext(UserContext);
 
   const toggleForm = () => setIsLogin(!isLogin);
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
@@ -26,7 +26,7 @@ const AuthForm = ({ baseUrl }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setError("");
     if (!formData.email || !formData.password) {
       setError("Email and password are required.");
       return;
@@ -44,6 +44,7 @@ const AuthForm = ({ baseUrl }) => {
 
     const url = isLogin ? `${baseUrl}/user/login` : `${baseUrl}/user/register`;
     setResponse(true);
+
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -57,7 +58,6 @@ const AuthForm = ({ baseUrl }) => {
       });
 
       const data = await response.json();
-      // console.log(data);
 
       if (!response.ok) {
         if (data.message === "Email already in use") {
@@ -67,17 +67,15 @@ const AuthForm = ({ baseUrl }) => {
       }
 
       setError("");
+      setResponse(false);
 
       if (isLogin) {
-        setResponse(false);
-        // alert("Login successful!");
-        // updateUser(data.user);
         setLoginClicked(true);
+        window.location.reload();
       } else {
         alert("Registration successful!");
       }
 
-      navigate("/login");
       setFormData({
         fullName: "",
         email: "",
@@ -85,13 +83,13 @@ const AuthForm = ({ baseUrl }) => {
         confirmPassword: "",
       });
     } catch (err) {
-      setIsLogin(false);
       setError(err.message);
+      setResponse(false);
     }
   };
 
   useEffect(() => {
-    setError(""); // Clear error when switching forms
+    setError("");
   }, [isLogin]);
 
   return (
@@ -177,12 +175,12 @@ const AuthForm = ({ baseUrl }) => {
             className="w-full bg-blue-500 text-white px-5 py-3 rounded-full cursor-pointer"
             type="submit"
             value={
-              isLogin
-                ? response
+              response
+                ? isLogin
                   ? "Logging in..."
-                  : "Login"
-                : response
-                ? "Registering..."
+                  : "Registering..."
+                : isLogin
+                ? "Login"
                 : "Register"
             }
             disabled={response}
