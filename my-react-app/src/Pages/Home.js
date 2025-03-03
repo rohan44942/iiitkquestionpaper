@@ -101,12 +101,12 @@ function Home() {
     fetchFiles(currentPage);
   }, [currentPage, fetchFiles]);
 
-  const filteredFiles = files.filter((file) => {
-    return (
-      (yearFilter ? file.metadata.year === yearFilter : true) &&
-      (branchFilter ? file.metadata.branch === branchFilter : true)
-    );
-  });
+  // const filteredFiles = files.filter((file) => {
+  //   return (
+  //     (yearFilter ? file.metadata.year === yearFilter : true) &&
+  //     (branchFilter ? file.metadata.branch === branchFilter : true)
+  //   );
+  // });
 
   if (error) {
     return <div className="text-red-500 text-center">Error: {error}</div>;
@@ -177,19 +177,18 @@ function Home() {
             <span className="loader">
               Taking a bit longer time, please hold on...
             </span>
-            {/* You can add a YouTube-like animation or other feedback here */}
           </div>
         )
-      ) : filteredFiles.length > 0 ? (
+      ) : files.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {filteredFiles.map((file, index) => {
+          {files.map((file, index) => {
             const fileData = {
               file,
               apiUrl,
               user,
               admin1,
               admin2,
-              observer: index === filteredFiles.length - 1 ? observer : null,
+              observer: index === files.length - 1 ? observer : null,
               handleDelete,
             };
             return <QPaper key={file._id} data={fileData} />;

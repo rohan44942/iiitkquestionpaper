@@ -41,34 +41,33 @@ const uploadpapers = async (req, res) => {
 };
 
 const getAllFiles = async (req, res) => {
-  const { year, branch, page = 1, limit = 10 } = req.query; 
-  const skip = (page - 1) * limit; 
+  const { year, branch, page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
 
   try {
-
-    const filter = { "metadata.status": "accepted" }; 
+    const filter = { "metadata.status": "accepted" };
 
     if (year) {
       filter["metadata.year"] = year;
     }
     if (branch) {
-      filter["metadata.branch"] = branch;
+      filter["metadata.branch"] = { $regex: new RegExp(branch, "i") };
     }
 
     const files = await mongoose.connection.db
       .collection("uploads.files")
       .find(filter)
-      .skip(skip) 
-      .limit(parseInt(limit)) 
+      .skip(skip)
+      .limit(parseInt(limit))
       .toArray();
 
     const totalFiles = await mongoose.connection.db
       .collection("uploads.files")
-      .countDocuments(filter); 
+      .countDocuments(filter);
 
     res.status(200).json({
       files,
-      totalFiles, 
+      totalFiles,
       currentPage: page,
       totalPages: Math.ceil(totalFiles / limit),
     });
@@ -88,20 +87,19 @@ const downloadByFileName = (req, res) => {
   readStream.pipe(res);
 };
 const getPaginatedFiles = async (req, res) => {
-  const { page = 1, limit = 10, year, branch } = req.query; 
+  const { page = 1, limit = 10, year, branch } = req.query;
 
   try {
     const filesCollection = mongoose.connection.db.collection("uploads.files");
 
     const filter = {};
-    if (year) filter["metadata.year"] = year; 
+    if (year) filter["metadata.year"] = year;
     if (branch) filter["metadata.branch"] = branch;
 
     const totalFiles = await filesCollection.countDocuments(filter);
 
     const totalPages = Math.ceil(totalFiles / limit);
 
- 
     const files = await filesCollection
       .find(filter)
       .sort({ uploadedAt: -1 })
@@ -176,13 +174,13 @@ const uploadNotes = async (req, res) => {
 const getUplodedNotes = async (req, res) => {
   try {
     const { page = 1, year, semester, subject } = req.query;
-    const limit = 20; 
+    const limit = 20;
     const skip = (page - 1) * limit;
 
     const filter = { status: "accepted" };
 
     if (year) {
-      console.log(year)
+      // console.log(year);
       filter.year = year;
     }
     if (semester) {
@@ -198,7 +196,7 @@ const getUplodedNotes = async (req, res) => {
 
     res.json({
       notes,
-      totalPages: Math.ceil(totalNotes / limit), 
+      totalPages: Math.ceil(totalNotes / limit),
       currentPage: parseInt(page),
     });
   } catch (error) {
@@ -211,10 +209,10 @@ const getPendingNotesFile = async (req, res) => {
   try {
     const files = await mongoose.connection.db
       .collection("notes")
-      .find({ status: "pending" }) 
-      .toArray(); 
+      .find({ status: "pending" })
+      .toArray();
 
-    res.status(200).json(files); 
+    res.status(200).json(files);
   } catch (error) {
     console.error("Error fetching pending uploads:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -224,10 +222,10 @@ const getPendingExamFile = async (req, res) => {
   try {
     const files = await mongoose.connection.db
       .collection("uploads.files")
-      .find({ "metadata.status": "pending" }) 
+      .find({ "metadata.status": "pending" })
       .toArray();
 
-    res.status(200).json(files); 
+    res.status(200).json(files);
   } catch (error) {
     console.error("Error fetching pending uploads:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -235,7 +233,7 @@ const getPendingExamFile = async (req, res) => {
 };
 
 const declineNoteUpload = async (req, res) => {
-  const { id, type } = req.params; 
+  const { id, type } = req.params;
 
   try {
     if (type === "exam") {
@@ -263,7 +261,6 @@ const acceptNoteUpload = async (req, res) => {
   const { id, type } = req.params;
   try {
     if (type === "exam") {
-   
       const result = await mongoose.connection.db
         .collection("uploads.files")
         .findOneAndUpdate(
@@ -275,7 +272,6 @@ const acceptNoteUpload = async (req, res) => {
         return res.status(404).json({ message: "Exam paper not found!" });
       res.status(200).json({ message: "Exam paper accepted." });
     } else if (type === "notes") {
-     
       const note = await Note.findById(id);
       if (!note) return res.status(404).json({ message: "Note not found!" });
 
