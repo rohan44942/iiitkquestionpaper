@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
-import { UserContext } from "../contextapi/userContext";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
@@ -17,8 +16,6 @@ const AuthForm = ({ baseUrl }) => {
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { setLoginClicked } = useContext(UserContext);
-
   const toggleForm = () => setIsLogin(!isLogin);
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
   const toggleConfirmPasswordVisibility = () =>
@@ -56,7 +53,7 @@ const AuthForm = ({ baseUrl }) => {
           password: formData.password,
         }),
       });
-
+      console.log("before data response");
       const data = await response.json();
 
       if (!response.ok) {
@@ -65,13 +62,15 @@ const AuthForm = ({ baseUrl }) => {
         }
         throw new Error(data.message || "An unexpected error occurred.");
       }
-
       setError("");
       setResponse(false);
 
       if (isLogin) {
-        setLoginClicked(true);
-        window.location.reload();
+        // setLoginClicked(true);
+        setTimeout(() => {
+          window.location.reload();
+        }, 10);
+        console.log("after data response");
       } else {
         alert("Registration successful!");
       }
@@ -83,6 +82,7 @@ const AuthForm = ({ baseUrl }) => {
         confirmPassword: "",
       });
     } catch (err) {
+      console.log(err.message);
       setError(err.message);
       setResponse(false);
     }
