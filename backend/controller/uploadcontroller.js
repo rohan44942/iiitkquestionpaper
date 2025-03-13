@@ -174,34 +174,32 @@ const uploadNotes = async (req, res) => {
 const getUplodedNotes = async (req, res) => {
   try {
     const { page = 1, year, semester, subject } = req.query;
-    const limit = 20;
+    const limit = 6;
     const skip = (page - 1) * limit;
 
     const filter = { status: "accepted" };
 
-    if (year) {
-      // console.log(year);
-      filter.year = year;
-    }
-    if (semester) {
-      filter.semester = semester;
-    }
-    if (subject) {
-      filter.subjectName = { $regex: subject, $options: "i" };
-    }
+    if (year) filter.year = year;
+    if (semester) filter.semester = semester;
+    if (subject) filter.subjectName = { $regex: new RegExp(subject, "i") };
 
-    // Fetch notes from MongoDB
-    const notes = await Note.find(filter).skip(skip).limit(limit);
-    const totalNotes = await Note.countDocuments(filter);
+    const [notes, totalNotes] = await Promise.all([
+      Note.find(filter).skip(skip).limit(limit).lean(),
+      Note.countDocuments(filter),
+    ]);
 
-    res.json({
+    res.status(200).json({
       notes,
       totalPages: Math.ceil(totalNotes / limit),
       currentPage: parseInt(page),
+      hasMore: notes.length === limit,
     });
   } catch (error) {
     console.error("Error fetching notes:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 // get pending file to the admin

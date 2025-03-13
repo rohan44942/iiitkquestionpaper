@@ -1,10 +1,10 @@
-import ShowNotes from "../component/ShowNotes"
+import ShowNotes from "../component/ShowNotes";
 function Notes() {
-    return (
-        <div>
-           <ShowNotes/>
-        </div>
-    )
+  return (
+    <div className="flex-grow">
+      <ShowNotes />
+    </div>
+  );
 }
 
-export default Notes
+export default Notes;
