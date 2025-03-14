@@ -4,7 +4,7 @@ const { ObjectId } = require("mongodb");
 const { Note } = require("../schema/noteschema");
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME ,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
@@ -72,7 +72,10 @@ const getAllFiles = async (req, res) => {
       totalPages: Math.ceil(totalFiles / limit),
     });
   } catch (error) {
-    res.status(500).json({ message: "Error querying the files", error });
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 }; // done
 
@@ -193,9 +196,10 @@ const getUplodedNotes = async (req, res) => {
       totalPages: Math.ceil(totalNotes / limit),
       currentPage: parseInt(page),
       hasMore: notes.length === limit,
+      totalNotes,
     });
   } catch (error) {
-    console.error("Error fetching notes:", error);
+    // console.error("Error fetching notes:", error);
     res.status(500).json({
       message: "Internal server error",
       error: error.message,

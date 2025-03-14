@@ -8,18 +8,17 @@ import React, {
 import { UserContext } from "../contextapi/userContext";
 
 function ShowNotes() {
+  const { user } = useContext(UserContext);
   const [notes, setNotes] = useState([]);
-  const [initialNotes, setInitialNotes] = useState([]);
+  // const [initialNotes, setInitialNotes] = useState([]);
   const [yearFilter, setYearFilter] = useState("");
   const [semesterFilter, setSemesterFilter] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const notesPerPage = 5;
+  const [loading, setLoading] = useState(false);
   const apiUrl = process.env.REACT_APP_API_URL;
-  const sentinelRef = useRef(null);
-  const { user } = useContext(UserContext);
+  const observerRef = useRef();
   const admin1 = process.env.REACT_APP_ADMIN1;
   const admin2 = process.env.REACT_APP_ADMIN2;
 
@@ -45,97 +44,55 @@ function ShowNotes() {
     }
   };
 
-  const fetchFiles = useCallback(async () => {
-    if (loading || !hasMore) return;
+  const fetchFiles = useCallback(
+    async (currentPage) => {
+      // if (loading || !hasMore) return;
 
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${apiUrl}/api/upload/notes?page=${currentPage}&year=${yearFilter}&semester=${semesterFilter}&subject=${subjectFilter}`,
-        { credentials: "include" }
-      );
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${apiUrl}/api/upload/notes?page=${currentPage}&year=${yearFilter}&semester=${semesterFilter}&subject=${subjectFilter}`,
+          { credentials: "include" }
+        );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!Array.isArray(data.notes)) {
-        setHasMore(false);
-        return;
-      }
-
-      if (currentPage === 1) {
-        setNotes(data.notes);
-        if (
-          yearFilter === "" &&
-          semesterFilter === "" &&
-          subjectFilter === ""
-        ) {
-          setInitialNotes(data.notes);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
-      } else {
+
+        const data = await response.json();
+
         setNotes((prev) => [...prev, ...data.notes]);
+        setHasMore(data.notes.length > 0);
+      } catch (error) {
+        console.error("Error fetching notes:", error);
+      } finally {
+        setLoading(false);
       }
+    },
+    [yearFilter, semesterFilter, subjectFilter, apiUrl]
+  );
 
-      setHasMore(data.notes.length >= notesPerPage);
-    } catch (error) {
-      console.error("Error fetching notes:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [
-    loading,
-    hasMore,
-    currentPage,
-    yearFilter,
-    semesterFilter,
-    subjectFilter,
-    apiUrl,
-    notesPerPage,
-  ]);
-
-  // Reset state when filters change
   useEffect(() => {
-    if (yearFilter === "" && semesterFilter === "" && subjectFilter === "") {
-      setNotes(initialNotes);
-      setHasMore(initialNotes.length >= notesPerPage);
-      setCurrentPage(1);
-    } else {
-      setNotes([]);
-      setCurrentPage(1); // This triggers the fetch effect below
-      setHasMore(true);
-    }
-  }, [yearFilter, semesterFilter, subjectFilter, initialNotes, notesPerPage]);
+    fetchFiles(currentPage);
+  }, [currentPage, fetchFiles]);
 
-  // Fetch when currentPage changes
-  useEffect(() => {
-    fetchFiles();
-  }, [fetchFiles]);
-
-  // Set up Intersection Observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !loading && hasMore) {
-          setCurrentPage((prev) => prev + 1);
-        }
-      },
-      { root: null, rootMargin: "100px", threshold: 0.1 }
-    );
-
-    const currentSentinel = sentinelRef.current;
-    if (currentSentinel) {
-      observer.observe(currentSentinel);
-    }
-
-    return () => {
-      if (currentSentinel) {
-        observer.unobserve(currentSentinel);
-      }
-    };
-  }, [loading, hasMore]);
+  const observer = useCallback(
+    (node) => {
+      if (loading || !hasMore) return;
+      console.log("running", hasMore, loading);
+      if (observerRef.current) observerRef.current.disconnect();
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && !loading && hasMore) {
+            setCurrentPage((prev) => prev + 1);
+          }
+        },
+        { root: null, rootMargin: "20px", threshold: 1.0 }
+      );
+      if (node) observerRef.current.observe(node);
+    },
+    [loading, hasMore]
+  );
 
   return (
     <div className="sm:min-h-[84vh] min-h-[78vh] pt-20 max-w-3xl mx-auto p-6 bg-gradient-to-r from-white via-gray-200 to-white">
@@ -144,7 +101,11 @@ function ShowNotes() {
       <div className="mb-4">
         <select
           value={yearFilter}
-          onChange={(e) => setYearFilter(e.target.value)}
+          onChange={(e) => {
+            setYearFilter(e.target.value);
+            setCurrentPage(1);
+            setNotes([]);
+          }}
           className="mr-2 border-gray-400 border-[0.01rem] rounded-md p-2"
         >
           <option value="">Select Year</option>
@@ -156,7 +117,11 @@ function ShowNotes() {
 
         <select
           value={semesterFilter}
-          onChange={(e) => setSemesterFilter(e.target.value)}
+          onChange={(e) => {
+            setSemesterFilter(e.target.value);
+            setCurrentPage(1);
+            setNotes([]);
+          }}
           className="mr-2 border-gray-400 border-[0.01rem] rounded-md p-2"
         >
           <option value="">Select Semester</option>
@@ -167,7 +132,11 @@ function ShowNotes() {
         <input
           type="text"
           value={subjectFilter}
-          onChange={(e) => setSubjectFilter(e.target.value)}
+          onChange={(e) => {
+            setSubjectFilter(e.target.value);
+            setCurrentPage(1);
+            setNotes([]);
+          }}
           placeholder="Search by Subject Name"
           className="border p-2 rounded md:mt-3"
         />
@@ -177,9 +146,10 @@ function ShowNotes() {
         <p className="text-gray-600">No notes available</p>
       ) : (
         <ul className="space-y-4">
-          {notes.map((note) => (
+          {notes.map((note, index) => (
             <li
               key={note._id}
+              ref={index === notes.length - 1 ? observer : null}
               className="border bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow duration-300"
             >
               <h3 className="text-xl font-semibold">{note.subjectName}</h3>
@@ -215,12 +185,11 @@ function ShowNotes() {
         </ul>
       )}
 
-      {loading && (
+      {loading && currentPage > 1 && (
         <div className="flex justify-center items-center mt-4">
           <span className="loader">Loading more files...</span>
         </div>
       )}
-      <div ref={sentinelRef} className="sentinel h-4 w-full" />
     </div>
   );
 }

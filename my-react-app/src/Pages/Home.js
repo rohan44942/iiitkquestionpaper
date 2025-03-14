@@ -9,7 +9,7 @@ import { UserContext } from "../contextapi/userContext";
 import QPaper from "../component/QPaper";
 
 function Home() {
-  const { user } = useContext(UserContext); // Context to get user role
+  const { user } = useContext(UserContext);
   const [files, setFiles] = useState([]);
   const [error, setError] = useState(null);
   const [yearFilter, setYearFilter] = useState("");
