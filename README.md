@@ -5,6 +5,7 @@ access previous year question papers and resources. The platform allows authenti
 to upload PDFs or images of exam papers, which are subject to approval before being made
 available for public viewing.Students can also view and download papers, filtered by year,
 branch, and subject.
+Live link:https://iiitkresourcesv3.netlify.app/
 
 ## Technologies Used
 
