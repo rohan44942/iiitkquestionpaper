@@ -9,6 +9,7 @@ import Upload from "./Pages/Upload";
 import About from "./Pages/About";
 import Notes from "./Pages/Notes";
 import Admin from "./Pages/Admin";
+import CommunityPage from "./Pages/CommunityPage";
 import ResetPassword from "./component/ResetPassword";
 import Footer from "./component/Footer";
 import Header from "./component/Header";
@@ -32,6 +33,7 @@ const App = () => {
           <Route path="about" element={<About />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/community" element={<CommunityPage />} />
           <Route path="*" element={<Error />} />
         </Routes>
       </div>

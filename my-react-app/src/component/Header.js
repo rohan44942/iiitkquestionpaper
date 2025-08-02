@@ -5,11 +5,27 @@ import { UserContext } from "../contextapi/userContext";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 
 const Header = () => {
   const { isAuthenticated, user } = useContext(UserContext);
   return (
     <div className="text-black bg-transparent text-center flex flex-row justify-end pr-5 h-[4.2rem] border-slate-700 border-r-2">
+      <div>
+        <NavLink
+          to="/Community"
+          className={({ isActive }) =>
+            `flex flex-col items-center  w-full py-2 px-3 mt-2 hover:bg-blue-100 hover:border-spacing-2 hover:border hover:rounded-sm transition-colors ${
+              isActive ? "text-blue-600 font-extrabold" : ""
+            }`
+          }
+        >
+          <span className="">
+            <GroupOutlinedIcon className="text-blue-500" />
+            {/* <span className="ml-2 pt-1">Community</span> */}
+          </span>
+        </NavLink>
+      </div>
       <div>
         {isAuthenticated ? (
           user.email === "2021kucp1109@iiitkota.ac.in" ||
