@@ -87,14 +87,14 @@ function Uploaddoc() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch({
-      type: "SET_STATUS",
-      payload:
-        user.email === process.env.REACT_APP_ADMIN1 ||
-        user.email === process.env.REACT_APP_ADMIN2
-          ? "accepted"
-          : "pending",
-    });
+    const status =
+      user?.role === "admin" ||
+      user?.email === process.env.REACT_APP_ADMIN1 ||
+      user?.email === process.env.REACT_APP_ADMIN2
+        ? "accepted"
+        : "pending";
+
+    dispatch({ type: "SET_STATUS", payload: status });
 
     if (state.upload) {
       const formData = new FormData();
@@ -103,8 +103,8 @@ function Uploaddoc() {
       formData.append("description", state.description);
       formData.append("year", state.year);
       formData.append("branch", state.branch);
-      formData.append("status", state.status);
-      formData.append("uploadedBy", state.uploadedBy);
+      formData.append("status", status);
+      formData.append("uploadedBy", state.uploadedBy || user?.email || "");
 
       dispatch({ type: "SET_IS_UPLOADING", payload: true });
 

@@ -1,12 +1,21 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 const { userModel } = require("../schema/userSchema");
+const { Note } = require("../schema/noteschema");
 const sendEmail = require("../utils/sendEmail");
-// const cookieParser = require("cookie-parser");
 
 require("dotenv").config();
 const key = process.env.SECRET_KEY;
 
+const sanitizeUser = (user) => ({
+  _id: user._id,
+  fullName: user.fullName,
+  email: user.email,
+  profilePic: user.profilePic,
+  role: user.role,
+  favorites: user.favorites || [],
+});
 
 const register = async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -26,9 +35,10 @@ const register = async (req, res) => {
       password: hashedPassword,
     });
 
-    res
-      .status(201)
-      .json({ message: "User created successfully", user: createdUser });
+    res.status(201).json({
+      message: "User created successfully",
+      user: sanitizeUser(createdUser),
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -39,7 +49,9 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
     const user = await userModel.findOne({ email });
     if (!user) {
@@ -50,32 +62,32 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Generate JWT
     const token = jwt.sign(
-      { email: user.email, id: user._id, role: user.role },
-      key,
       {
-        expiresIn: "1h", // Token expires in 1 hour
-      }
+        email: user.email,
+        id: user._id,
+        role: user.role,
+        fullName: user.fullName,
+      },
+      key,
+      { expiresIn: "7d" }
     );
 
     res
       .status(200)
       .cookie("token", token, {
-        httpOnly: true, // Prevent access from client-side scripts
-        // secure: process.env.NODE_ENV === "production", // Send only over HTTPS when in production
-        secure:true,
-        maxAge: 60 * 60 * 1000, // 1 hour only
+        httpOnly: true,
+        secure: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
         sameSite: "None",
       })
-      .json({ message: "Login successful", token: token });
+      .json({ message: "Login successful", user: sanitizeUser(user) });
   } catch (err) {
     console.error("Login failed   ", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-//user/me wala route
 const getUserDetails = async (req, res) => {
   try {
     if (!req.user || !req.user.id) {
@@ -84,23 +96,22 @@ const getUserDetails = async (req, res) => {
 
     const user = await userModel
       .findById(req.user.id)
-      .select("fullName email profilePic role"); // Exclude password
+      .select("fullName email profilePic role favorites");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ user });
+    res.status(200).json({ user: sanitizeUser(user) });
   } catch (err) {
     console.error("Error fetching user details:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// logout
 const logout = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: true, // Use secure cookies in production
+    secure: true,
     sameSite: "None",
   });
   res.status(200).json({ message: "Logged out successfully" });
@@ -108,22 +119,24 @@ const logout = (req, res) => {
 
 const changeRole = async (req, res) => {
   try {
-    const { email, role } = req.body; //  send email and newRole in the body
-
-    // Find the user by email and update the role
-    const user = await userModel.findOneAndUpdate(
-      { email: email }, // Query to find the user by email
-      { $set: { role: role } }, // Update the role field
-      { new: true } // Option to return the updated document
-    );
-
-    if (!user) {
-      return res.status(404).send("User not found");
+    const { email, role } = req.body;
+    if (!email || !["user", "admin"].includes(role)) {
+      return res.status(400).json({ message: "Valid email and role required" });
     }
 
-    res.status(200).send(`User role updated to ${role}`);
+    const user = await userModel.findOneAndUpdate(
+      { email },
+      { $set: { role } },
+      { new: true }
+    ).select("fullName email role");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: `User role updated to ${role}`, user });
   } catch (err) {
-    res.status(500).send("Error updating role");
+    res.status(500).json({ message: "Error updating role" });
   }
 };
 
@@ -131,7 +144,6 @@ const sendOtp = async (req, res) => {
   const { email } = req.body;
 
   try {
-    // Check if user exists
     const user = await userModel.findOne({ email });
     if (!user) {
       return res
@@ -139,19 +151,14 @@ const sendOtp = async (req, res) => {
         .json({ message: "No account found with this email." });
     }
 
-    // Generate a 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // Hash the OTP
     const hashedOtp = await bcrypt.hash(otp, 10);
 
-    // Save OTP and its expiration time in the user document
     user.otp = hashedOtp;
-    user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // Valid for 10 minutes
-    // console.log(Date.now());
+    user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+    user.resetVerifiedUntil = undefined;
     await user.save();
 
-    // Send the OTP to the user via email
     const message = `
       <p>Your OTP for resetting the password is: <strong>${otp}</strong>.</p>
       <p>This OTP is valid for 10 minutes. If you did not request this, please ignore this email.</p>
@@ -171,7 +178,7 @@ const sendOtp = async (req, res) => {
       .json({ message: "Something went wrong. Please try again later." });
   }
 };
-// Verify OTP sent to the user's email
+
 const verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
 
@@ -179,19 +186,18 @@ const verifyOtp = async (req, res) => {
     const user = await userModel.findOne({ email });
 
     if (!user || !user.otp || !user.passwordResetExpires) {
-      return res.status(400).json({ message: "Invalid or expired OTP this." });
+      return res.status(400).json({ message: "Invalid or expired OTP." });
     }
 
-    // Check if the OTP is valid
     const isOtpValid = await bcrypt.compare(otp, user.otp);
 
     if (!isOtpValid || user.passwordResetExpires < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired OTP." });
     }
 
-    // OTP is valid, allow password reset
-    user.otp = undefined; // Clear OTP after verification
-    user.otpExpires = undefined;
+    user.otp = undefined;
+    user.passwordResetExpires = undefined;
+    user.resetVerifiedUntil = Date.now() + 15 * 60 * 1000;
     await user.save();
 
     res
@@ -205,27 +211,29 @@ const verifyOtp = async (req, res) => {
   }
 };
 
-// Update the password for the user after OTP verification
 const updatePassword = async (req, res) => {
   const { email, newPassword } = req.body;
 
   try {
-    // Find the user by email
     const user = await userModel.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    if (!user.resetVerifiedUntil || user.resetVerifiedUntil < Date.now()) {
+      return res
+        .status(403)
+        .json({ message: "Please verify OTP before resetting password." });
+    }
 
-    // Update the password and clear OTP-related fields
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     user.otp = undefined;
-    user.otpExpires = undefined;
+    user.passwordResetExpires = undefined;
+    user.resetVerifiedUntil = undefined;
     await user.save();
 
-    res.status(200).json({});
+    res.status(200).json({ message: "Password updated successfully." });
   } catch (err) {
     console.error(err);
     res
@@ -233,6 +241,127 @@ const updatePassword = async (req, res) => {
       .json({ message: "Something went wrong. Please try again later." });
   }
 };
+
+const toggleFavorite = async (req, res) => {
+  try {
+    const { resourceId, resourceType, title, meta } = req.body;
+    if (!resourceId || !["paper", "note"].includes(resourceType)) {
+      return res.status(400).json({ message: "Invalid favorite payload" });
+    }
+
+    const user = await userModel.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const existing = user.favorites.findIndex(
+      (f) => f.resourceId === resourceId && f.resourceType === resourceType
+    );
+
+    let favorited = false;
+    if (existing >= 0) {
+      user.favorites.splice(existing, 1);
+    } else {
+      user.favorites.push({
+        resourceId,
+        resourceType,
+        title: title || "Resource",
+        meta: meta || "",
+      });
+      favorited = true;
+    }
+
+    await user.save();
+    res.status(200).json({
+      message: favorited ? "Added to favorites" : "Removed from favorites",
+      favorited,
+      favorites: user.favorites,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update favorites" });
+  }
+};
+
+const getFavorites = async (req, res) => {
+  try {
+    const user = await userModel
+      .findById(req.user.id)
+      .select("favorites");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.status(200).json({ favorites: user.favorites || [] });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load favorites" });
+  }
+};
+
+const getContributionStats = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user.id).select("email fullName favorites");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const email = user.email;
+    const name = user.fullName;
+
+    const papersUploaded = await mongoose.connection.db
+      .collection("uploads.files")
+      .countDocuments({
+        $or: [
+          { "metadata.uploadedBy": email },
+          { "metadata.uploadedBy": name },
+        ],
+      });
+
+    const papersAccepted = await mongoose.connection.db
+      .collection("uploads.files")
+      .countDocuments({
+        "metadata.status": "accepted",
+        $or: [
+          { "metadata.uploadedBy": email },
+          { "metadata.uploadedBy": name },
+        ],
+      });
+
+    const notesUploaded = await Note.countDocuments({
+      $or: [{ uploadedBy: email }, { uploadedBy: name }, { uploadedById: user._id }],
+    });
+
+    const notesAccepted = await Note.countDocuments({
+      status: "accepted",
+      $or: [{ uploadedBy: email }, { uploadedBy: name }, { uploadedById: user._id }],
+    });
+
+    res.status(200).json({
+      stats: {
+        papersUploaded,
+        papersAccepted,
+        notesUploaded,
+        notesAccepted,
+        favoritesCount: user.favorites?.length || 0,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to load stats" });
+  }
+};
+
+const findUserByEmail = async (req, res) => {
+  const { email } = req.query;
+  if (!email) {
+    return res.status(400).json({ message: "Please provide a valid email." });
+  }
+
+  try {
+    const user = await userModel.findOne({ email }).select("fullName role email");
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    res.status(200).json({ user });
+  } catch (err) {
+    console.error("Error finding user with email:", err.message);
+    res.status(500).json({ message: "An error occurred while fetching the user." });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -242,4 +371,8 @@ module.exports = {
   sendOtp,
   verifyOtp,
   updatePassword,
+  toggleFavorite,
+  getFavorites,
+  getContributionStats,
+  findUserByEmail,
 };

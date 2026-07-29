@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { UserContext } from "../contextapi/userContext";
 
 const AuthForm = ({ baseUrl }) => {
-  const [isLogin, setIsLogin] = useState(true); // Toggle between login and register
+  const [isLogin, setIsLogin] = useState(true);
   const [response, setResponse] = useState(false);
-
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [formData, setFormData] = useState({
@@ -16,6 +16,8 @@ const AuthForm = ({ baseUrl }) => {
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { updateUser } = useContext(UserContext);
+
   const toggleForm = () => setIsLogin(!isLogin);
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
   const toggleConfirmPasswordVisibility = () =>
@@ -28,12 +30,10 @@ const AuthForm = ({ baseUrl }) => {
       setError("Email and password are required.");
       return;
     }
-
     if (!isLogin && !formData.fullName) {
       setError("Full name is required for registration.");
       return;
     }
-
     if (!isLogin && formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -43,7 +43,7 @@ const AuthForm = ({ baseUrl }) => {
     setResponse(true);
 
     try {
-      const response = await fetch(url, {
+      const res = await fetch(url, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -53,26 +53,24 @@ const AuthForm = ({ baseUrl }) => {
           password: formData.password,
         }),
       });
-      console.log("before data response");
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (data.message === "Email already in use") {
-          throw new Error("A user with this email already exists.");
-        }
+      const data = await res.json();
+      if (!res.ok) {
         throw new Error(data.message || "An unexpected error occurred.");
       }
-      setError("");
-      setResponse(false);
 
+      setResponse(false);
       if (isLogin) {
-        // setLoginClicked(true);
-        setTimeout(() => {
-          window.location.reload();
-        }, 10);
-        console.log("after data response");
+        if (data.user) updateUser(data.user);
+        else {
+          const me = await fetch(`${baseUrl}/user/me`, { credentials: "include" });
+          const meData = await me.json();
+          if (meData.user) updateUser(meData.user);
+        }
+        navigate("/user");
       } else {
-        alert("Registration successful!");
+        setIsLogin(true);
+        setError("");
+        alert("Registration successful! Please log in.");
       }
 
       setFormData({
@@ -82,7 +80,6 @@ const AuthForm = ({ baseUrl }) => {
         confirmPassword: "",
       });
     } catch (err) {
-      console.log(err.message);
       setError(err.message);
       setResponse(false);
     }
@@ -93,114 +90,107 @@ const AuthForm = ({ baseUrl }) => {
   }, [isLogin]);
 
   return (
-    <div className="flex items-center justify-center h-full w-full sm:p-6  bg-light-cream">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg border sm:p-6 p-1 border-gray-200">
-        <h3 className="text-3xl font-semibold text-center text-gray-700 mb-6">
-          Welcome to <span className="text-blue-500">IIIK Resources</span>
-        </h3>
-        {error && (
-          <p className="text-rose-500 text-center text-sm mb-3">{error}</p>
-        )}
-        <form autoComplete="off" onSubmit={handleSubmit}>
-          {!isLogin && (
-            <>
-              <input
-                className="bg-zinc-100 block w-full px-4 py-3 border border-zinc-200 rounded-md mb-3"
-                type="text"
-                placeholder="Full Name"
-                name="fullName"
-                value={formData.fullName}
-                onChange={(e) =>
-                  setFormData({ ...formData, fullName: e.target.value })
-                }
-              />
-            </>
-          )}
+    <div className="w-full">
+      <h3 className="font-display text-2xl text-center text-ink mb-1">
+        {isLogin ? "Welcome back" : "Create account"}
+      </h3>
+      <p className="text-center text-sm text-ink-muted mb-6">
+        IIITK Resources — papers, notes, community
+      </p>
+      {error && (
+        <p className="text-rose-600 text-center text-sm mb-3 bg-rose-50 rounded-xl py-2 px-3">
+          {error}
+        </p>
+      )}
+      <form autoComplete="off" onSubmit={handleSubmit} className="space-y-3">
+        {!isLogin && (
           <input
-            className="bg-zinc-100 block w-full px-4 py-3 border border-zinc-200 rounded-md mb-3"
-            type="email"
-            placeholder="Email"
-            name="email"
-            value={formData.email}
+            className="field"
+            type="text"
+            placeholder="Full Name"
+            name="fullName"
+            value={formData.fullName}
             onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
+              setFormData({ ...formData, fullName: e.target.value })
             }
           />
-
-          {/* Password Input */}
-          <div className="relative mb-3">
+        )}
+        <input
+          className="field"
+          type="email"
+          placeholder="Email"
+          name="email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+        />
+        <div className="relative">
+          <input
+            className="field !pr-10"
+            type={passwordVisible ? "text" : "password"}
+            placeholder="Password"
+            name="password"
+            value={formData.password}
+            onChange={(e) =>
+              setFormData({ ...formData, password: e.target.value })
+            }
+          />
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted"
+            onClick={togglePasswordVisibility}
+          >
+            {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+          </button>
+        </div>
+        {!isLogin && (
+          <div className="relative">
             <input
-              className="bg-zinc-100 block w-full px-4 py-3 border border-zinc-200 rounded-md"
-              type={passwordVisible ? "text" : "password"}
-              placeholder="Password"
-              name="password"
-              value={formData.password}
+              className="field !pr-10"
+              type={confirmPasswordVisible ? "text" : "password"}
+              placeholder="Confirm Password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
               onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
+                setFormData({
+                  ...formData,
+                  confirmPassword: e.target.value,
+                })
               }
             />
-            <span
-              className="absolute right-3 top-3 cursor-pointer text-gray-500"
-              onClick={togglePasswordVisibility}
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted"
+              onClick={toggleConfirmPasswordVisibility}
             >
-              {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-            </span>
+              {confirmPasswordVisible ? <FaEyeSlash /> : <FaEye />}
+            </button>
           </div>
-
-          {!isLogin && (
-            <div className="relative mb-3">
-              <input
-                className="bg-zinc-100 block w-full px-4 py-3 border border-zinc-200 rounded-md"
-                type={confirmPasswordVisible ? "text" : "password"}
-                placeholder="Confirm Password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    confirmPassword: e.target.value,
-                  })
-                }
-              />
-              <span
-                className="absolute right-3 top-3 cursor-pointer text-gray-500"
-                onClick={toggleConfirmPasswordVisibility}
-              >
-                {confirmPasswordVisible ? <FaEyeSlash /> : <FaEye />}
-              </span>
-            </div>
-          )}
-
-          <input
-            className="w-full bg-blue-500 text-white px-5 py-3 rounded-full cursor-pointer"
-            type="submit"
-            value={
-              response
-                ? isLogin
-                  ? "Logging in..."
-                  : "Registering..."
-                : isLogin
-                ? "Login"
-                : "Register"
-            }
-            disabled={response}
-          />
-        </form>
-        <p className="mt-3 text-sm text-center text-gray-500">
-          <span
-            className="text-blue-500 cursor-pointer"
-            onClick={() => navigate("/forgot-password")}
-          >
-            Forgot Password?
-          </span>
-        </p>
-        <p className="mt-3 text-sm text-center text-gray-500">
-          {isLogin ? "Don’t have an account?" : "Already have an account?"}{" "}
-          <span className="text-blue-500 cursor-pointer" onClick={toggleForm}>
-            {isLogin ? "Register" : "Login"}
-          </span>
-        </p>
-      </div>
+        )}
+        <button type="submit" className="btn-primary w-full" disabled={response}>
+          {response
+            ? isLogin
+              ? "Signing in…"
+              : "Creating…"
+            : isLogin
+            ? "Sign in"
+            : "Register"}
+        </button>
+      </form>
+      <p className="mt-4 text-sm text-center text-ink-muted">
+        <button
+          type="button"
+          className="text-accent hover:underline"
+          onClick={() => navigate("/forgot-password")}
+        >
+          Forgot password?
+        </button>
+      </p>
+      <p className="mt-2 text-sm text-center text-ink-muted">
+        {isLogin ? "No account?" : "Already registered?"}{" "}
+        <button type="button" className="text-accent hover:underline" onClick={toggleForm}>
+          {isLogin ? "Register" : "Sign in"}
+        </button>
+      </p>
     </div>
   );
 };

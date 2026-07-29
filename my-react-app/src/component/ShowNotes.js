@@ -6,13 +6,16 @@ import React, {
   useCallback,
 } from "react";
 import { UserContext } from "../contextapi/userContext";
+import { FaHeart, FaRegHeart, FaExternalLinkAlt } from "react-icons/fa";
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 
 function ShowNotes() {
-  const { user } = useContext(UserContext);
+  const { user, isFavorite, toggleFavorite, isAuthenticated } =
+    useContext(UserContext);
   const [notes, setNotes] = useState([]);
-  // const [initialNotes, setInitialNotes] = useState([]);
   const [yearFilter, setYearFilter] = useState("");
   const [semesterFilter, setSemesterFilter] = useState("");
+  const [subjectInput, setSubjectInput] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -22,47 +25,49 @@ function ShowNotes() {
   const admin1 = process.env.REACT_APP_ADMIN1;
   const admin2 = process.env.REACT_APP_ADMIN2;
 
-  const handleDelete = async (id, type) => {
-    if (window.confirm("Are you sure you want to delete this note?")) {
-      try {
-        const response = await fetch(`${apiUrl}/api/uploads/${type}/${id}`, {
-          method: "DELETE",
-          credentials: "include",
-        });
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSubjectFilter(subjectInput.trim());
+      setCurrentPage(1);
+      setNotes([]);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [subjectInput]);
 
-        if (response.ok) {
-          setNotes((prevNotes) => prevNotes.filter((note) => note._id !== id));
-          alert("Note deleted successfully.");
-        } else {
-          const data = await response.json();
-          alert(data.message || "Failed to delete the note.");
-        }
-      } catch (error) {
-        console.error("Error deleting the note:", error);
-        alert("An error occurred while deleting the note.");
+  const handleDelete = async (id, type) => {
+    if (!window.confirm("Delete this note?")) return;
+    try {
+      const response = await fetch(`${apiUrl}/api/uploads/${type}/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (response.ok) {
+        setNotes((prev) => prev.filter((note) => note._id !== id));
+      } else {
+        const data = await response.json();
+        alert(data.message || "Failed to delete the note.");
       }
+    } catch (error) {
+      alert("An error occurred while deleting the note.");
     }
   };
 
   const fetchFiles = useCallback(
-    async (currentPage) => {
-      // if (loading || !hasMore) return;
-
+    async (page) => {
       setLoading(true);
       try {
-        const response = await fetch(
-          `${apiUrl}/api/upload/notes?page=${currentPage}&year=${yearFilter}&semester=${semesterFilter}&subject=${subjectFilter}`,
-          { credentials: "include" }
-        );
+        const params = new URLSearchParams({ page: String(page) });
+        if (yearFilter) params.set("year", yearFilter);
+        if (semesterFilter) params.set("semester", semesterFilter);
+        if (subjectFilter) params.set("subject", subjectFilter);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
+        const response = await fetch(`${apiUrl}/api/upload/notes?${params}`, {
+          credentials: "include",
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-
-        setNotes((prev) => [...prev, ...data.notes]);
-        setHasMore(data.notes.length > 0);
+        setNotes((prev) => (page === 1 ? data.notes : [...prev, ...data.notes]));
+        setHasMore(Boolean(data.hasMore));
       } catch (error) {
         console.error("Error fetching notes:", error);
       } finally {
@@ -79,7 +84,6 @@ function ShowNotes() {
   const observer = useCallback(
     (node) => {
       if (loading || !hasMore) return;
-      console.log("running", hasMore, loading);
       if (observerRef.current) observerRef.current.disconnect();
       observerRef.current = new IntersectionObserver(
         (entries) => {
@@ -87,108 +91,162 @@ function ShowNotes() {
             setCurrentPage((prev) => prev + 1);
           }
         },
-        { root: null, rootMargin: "20px", threshold: 1.0 }
+        { root: null, rootMargin: "80px", threshold: 0.2 }
       );
       if (node) observerRef.current.observe(node);
     },
     [loading, hasMore]
   );
 
+  const onFavorite = async (note) => {
+    if (!isAuthenticated) {
+      window.location.href = "/login";
+      return;
+    }
+    await toggleFavorite({
+      resourceId: note._id,
+      resourceType: "note",
+      title: note.subjectName,
+      meta: `${note.year || ""} · ${note.semester || ""}`,
+    });
+  };
+
   return (
-    <div className="sm:min-h-[84vh] min-h-[78vh] pt-20 max-w-3xl mx-auto p-6 bg-gradient-to-r from-white via-gray-200 to-white">
-      <h2 className="text-2xl font-bold mb-4">Notes</h2>
+    <div className="page-shell max-w-4xl">
+      <div className="mb-8 animate-fadeUp">
+        <h1 className="page-title">Study notes</h1>
+        <p className="page-subtitle">
+          Subject notes curated by seniors — filter by year and semester, then
+          open the file instantly.
+        </p>
+      </div>
 
-      <div className="mb-4">
-        <select
-          value={yearFilter}
-          onChange={(e) => {
-            setYearFilter(e.target.value);
-            setCurrentPage(1);
-            setNotes([]);
-          }}
-          className="mr-2 border-gray-400 border-[0.01rem] rounded-md p-2"
-        >
-          <option value="">Select Year</option>
-          <option value="1st Year">1st Year</option>
-          <option value="2nd Year">2nd Year</option>
-          <option value="3rd Year">3rd Year</option>
-          <option value="4th Year">4th Year</option>
-        </select>
-
-        <select
-          value={semesterFilter}
-          onChange={(e) => {
-            setSemesterFilter(e.target.value);
-            setCurrentPage(1);
-            setNotes([]);
-          }}
-          className="mr-2 border-gray-400 border-[0.01rem] rounded-md p-2"
-        >
-          <option value="">Select Semester</option>
-          <option value="1st Sem">1st Sem</option>
-          <option value="2nd Sem">2nd Sem</option>
-        </select>
-
-        <input
-          type="text"
-          value={subjectFilter}
-          onChange={(e) => {
-            setSubjectFilter(e.target.value);
-            setCurrentPage(1);
-            setNotes([]);
-          }}
-          placeholder="Search by Subject Name"
-          className="border p-2 rounded md:mt-3"
-        />
+      <div className="surface-card p-4 mb-6 animate-fadeUp">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <select
+            value={yearFilter}
+            onChange={(e) => {
+              setYearFilter(e.target.value);
+              setCurrentPage(1);
+              setNotes([]);
+            }}
+            className="field"
+          >
+            <option value="">All years</option>
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
+          </select>
+          <select
+            value={semesterFilter}
+            onChange={(e) => {
+              setSemesterFilter(e.target.value);
+              setCurrentPage(1);
+              setNotes([]);
+            }}
+            className="field"
+          >
+            <option value="">All semesters</option>
+            <option value="1st Sem">1st Sem</option>
+            <option value="2nd Sem">2nd Sem</option>
+          </select>
+          <label className="relative">
+            <SearchOutlinedIcon
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted"
+              fontSize="small"
+            />
+            <input
+              type="search"
+              value={subjectInput}
+              onChange={(e) => setSubjectInput(e.target.value)}
+              placeholder="Search subject…"
+              className="field !pl-10"
+            />
+          </label>
+        </div>
       </div>
 
       {notes.length === 0 && !loading ? (
-        <p className="text-gray-600">No notes available</p>
+        <div className="surface-card p-12 text-center">
+          <p className="font-display text-xl">No notes yet</p>
+          <p className="text-sm text-ink-muted mt-2">
+            Be the first to{" "}
+            <a href="/upload" className="text-accent underline">
+              share notes
+            </a>
+            .
+          </p>
+        </div>
       ) : (
         <ul className="space-y-4">
-          {notes.map((note, index) => (
-            <li
-              key={note._id}
-              ref={index === notes.length - 1 ? observer : null}
-              className="border bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow duration-300"
-            >
-              <h3 className="text-xl font-semibold">{note.subjectName}</h3>
-              <p className="text-gray-700">
-                Year: <span className="font-medium">{note.year}</span>
-              </p>
-              <p className="text-gray-700">
-                Semester: <span className="font-medium">{note.semester}</span>
-              </p>
-              <p className="text-gray-700">
-                Branch: <span className="font-medium">{note.branch}</span>
-              </p>
-              <a
-                href={note.fileLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-700 underline mt-2 inline-block"
+          {notes.map((note, index) => {
+            const favorited = isFavorite(note._id, "note");
+            return (
+              <li
+                key={note._id}
+                ref={index === notes.length - 1 ? observer : null}
+                className="surface-card p-5 animate-fadeUp"
               >
-                View File
-              </a>
-              {(user?.role === "admin" ||
-                user?.email === admin1 ||
-                user?.email === admin2) && (
-                <button
-                  onClick={() => handleDelete(note._id, "notes")}
-                  className="m-2 text-red-500 hover:text-red-700 underline"
-                >
-                  Delete Note
-                </button>
-              )}
-            </li>
-          ))}
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-display text-xl text-ink">
+                      {note.subjectName}
+                    </h3>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {note.year && <span className="chip">{note.year}</span>}
+                      {note.semester && (
+                        <span className="chip !bg-paper !text-ink-muted">
+                          {note.semester}
+                        </span>
+                      )}
+                      {note.branch && (
+                        <span className="chip !bg-paper !text-ink-muted">
+                          {note.branch}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onFavorite(note)}
+                    className="h-9 w-9 rounded-full border border-paper-line flex items-center justify-center text-accent hover:bg-accent-soft transition"
+                    aria-label="Toggle favorite"
+                  >
+                    {favorited ? <FaHeart /> : <FaRegHeart />}
+                  </button>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <a
+                    href={note.fileLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary !py-2 !px-3 text-xs"
+                  >
+                    <FaExternalLinkAlt /> Open file
+                  </a>
+                  {(user?.role === "admin" ||
+                    user?.email === admin1 ||
+                    user?.email === admin2) && (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(note._id, "notes")}
+                      className="btn-ghost !py-2 !px-3 text-xs !text-red-600 !border-red-200"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
 
-      {loading && currentPage > 1 && (
-        <div className="flex justify-center items-center mt-4">
-          <span className="loader">Loading more files...</span>
-        </div>
+      {loading && (
+        <p className="text-center text-ink-muted mt-6 text-sm">
+          {currentPage === 1 ? "Loading notes…" : "Loading more…"}
+        </p>
       )}
     </div>
   );

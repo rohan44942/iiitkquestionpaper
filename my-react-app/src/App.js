@@ -16,28 +16,24 @@ import Header from "./component/Header";
 
 const App = () => {
   return (
-    <div className="flex flex-col min-h-screen ">
-      <div className="bg-transparent">
-        <Header />
-        <div className="">
-          <Navbar />
-        </div>
-      </div>
-      <div className="flex-grow lg:ml-20 md:ml-16 transition-all">
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <Navbar />
+      <main className="flex-grow w-full pt-14 md:pt-0 md:pl-[4.75rem] transition-all duration-300">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/user" element={<Login />} />
           <Route path="/forgot-password" element={<ResetPassword />} />
           <Route path="/upload" element={<Upload />} />
-          <Route path="about" element={<About />} />
+          <Route path="/about" element={<About />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="*" element={<Error />} />
         </Routes>
-      </div>
-      <div className=" h-[3rem] pt-2 ">
+      </main>
+      <div className="md:pl-[4.75rem]">
         <Footer />
       </div>
     </div>

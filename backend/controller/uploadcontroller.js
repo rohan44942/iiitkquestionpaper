@@ -41,7 +41,7 @@ const uploadpapers = async (req, res) => {
 };
 
 const getAllFiles = async (req, res) => {
-  const { year, branch, page = 1, limit = 10 } = req.query;
+  const { year, branch, q, page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
 
   try {
@@ -53,10 +53,21 @@ const getAllFiles = async (req, res) => {
     if (branch) {
       filter["metadata.branch"] = { $regex: new RegExp(branch, "i") };
     }
+    if (q && q.trim()) {
+      const term = q.trim();
+      filter.$or = [
+        { "metadata.fileName": { $regex: term, $options: "i" } },
+        { "metadata.description": { $regex: term, $options: "i" } },
+        { filename: { $regex: term, $options: "i" } },
+        { "metadata.branch": { $regex: term, $options: "i" } },
+        { "metadata.year": { $regex: term, $options: "i" } },
+      ];
+    }
 
     const files = await mongoose.connection.db
       .collection("uploads.files")
       .find(filter)
+      .sort({ uploadDate: -1 })
       .skip(skip)
       .limit(parseInt(limit))
       .toArray();
@@ -68,8 +79,8 @@ const getAllFiles = async (req, res) => {
     res.status(200).json({
       files,
       totalFiles,
-      currentPage: page,
-      totalPages: Math.ceil(totalFiles / limit),
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(totalFiles / limit) || 1,
     });
   } catch (error) {
     res.status(500).json({
@@ -77,17 +88,65 @@ const getAllFiles = async (req, res) => {
       error: error.message,
     });
   }
-}; // done
+};
 
-const downloadByFileName = (req, res) => {
+const downloadByFileName = async (req, res) => {
   const gfs = req.gfs;
   const filename = req.params.filename;
+  try {
+    await mongoose.connection.db.collection("uploads.files").updateOne(
+      { filename },
+      { $inc: { "metadata.downloads": 1 } }
+    );
+  } catch (e) {
+    // non-blocking
+  }
   res.set({
     "Content-Disposition": `attachment; filename="${filename}"`,
     "Content-Type": "application/octet-stream",
   });
   const readStream = gfs.openDownloadStreamByName(filename);
   readStream.pipe(res);
+};
+
+const unifiedSearch = async (req, res) => {
+  const { q = "", limit = 8 } = req.query;
+  if (!q.trim()) {
+    return res.status(200).json({ papers: [], notes: [] });
+  }
+  const term = q.trim();
+  try {
+    const paperFilter = {
+      "metadata.status": "accepted",
+      $or: [
+        { "metadata.fileName": { $regex: term, $options: "i" } },
+        { "metadata.description": { $regex: term, $options: "i" } },
+        { filename: { $regex: term, $options: "i" } },
+        { "metadata.branch": { $regex: term, $options: "i" } },
+      ],
+    };
+    const noteFilter = {
+      status: "accepted",
+      $or: [
+        { subjectName: { $regex: term, $options: "i" } },
+        { branch: { $regex: term, $options: "i" } },
+        { year: { $regex: term, $options: "i" } },
+      ],
+    };
+
+    const [papers, notes] = await Promise.all([
+      mongoose.connection.db
+        .collection("uploads.files")
+        .find(paperFilter)
+        .limit(parseInt(limit))
+        .toArray(),
+      Note.find(noteFilter).limit(parseInt(limit)).lean(),
+    ]);
+
+    res.status(200).json({ papers, notes, query: term });
+  } catch (error) {
+    res.status(500).json({ message: "Search failed", error: error.message });
+  }
 };
 const getPaginatedFiles = async (req, res) => {
   const { page = 1, limit = 10, year, branch } = req.query;
@@ -155,7 +214,8 @@ const getLinkFromCloudinary = (req, res) => {
 };
 // upload notes to mongo
 const uploadNotes = async (req, res) => {
-  const { subjectName, year, semester, branch, fileLink, status } = req.body;
+  const { subjectName, year, semester, branch, fileLink, status, uploadedBy } =
+    req.body;
   try {
     const newNote = new Note({
       subjectName,
@@ -163,7 +223,9 @@ const uploadNotes = async (req, res) => {
       semester,
       branch,
       fileLink,
-      status,
+      status: status || "pending",
+      uploadedBy: uploadedBy || req.user?.email || "A helper",
+      uploadedById: req.user?.id,
     });
 
     await newNote.save();
@@ -173,10 +235,9 @@ const uploadNotes = async (req, res) => {
   }
 };
 
-// get uploaded notes
 const getUplodedNotes = async (req, res) => {
   try {
-    const { page = 1, year, semester, subject } = req.query;
+    const { page = 1, year, semester, subject, q } = req.query;
     const limit = 6;
     const skip = (page - 1) * limit;
 
@@ -184,22 +245,27 @@ const getUplodedNotes = async (req, res) => {
 
     if (year) filter.year = year;
     if (semester) filter.semester = semester;
-    if (subject) filter.subjectName = { $regex: new RegExp(subject, "i") };
+    const searchTerm = subject || q;
+    if (searchTerm) {
+      filter.$or = [
+        { subjectName: { $regex: new RegExp(searchTerm, "i") } },
+        { branch: { $regex: new RegExp(searchTerm, "i") } },
+      ];
+    }
 
     const [notes, totalNotes] = await Promise.all([
-      Note.find(filter).skip(skip).limit(limit).lean(),
+      Note.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       Note.countDocuments(filter),
     ]);
 
     res.status(200).json({
       notes,
-      totalPages: Math.ceil(totalNotes / limit),
+      totalPages: Math.ceil(totalNotes / limit) || 1,
       currentPage: parseInt(page),
       hasMore: notes.length === limit,
       totalNotes,
     });
   } catch (error) {
-    // console.error("Error fetching notes:", error);
     res.status(500).json({
       message: "Internal server error",
       error: error.message,
@@ -301,4 +367,5 @@ module.exports = {
   acceptNoteUpload,
   getPendingNotesFile,
   downloadByFileName,
+  unifiedSearch,
 };

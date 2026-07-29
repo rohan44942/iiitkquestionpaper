@@ -1,93 +1,108 @@
 # IIIT Kota Student Resource Platform
 
-This is a full-stack web application designed to help students from IIIT Kota upload and 
-access previous year question papers and resources. The platform allows authenticated users
-to upload PDFs or images of exam papers, which are subject to approval before being made
-available for public viewing.Students can also view and download papers, filtered by year,
-branch, and subject.
-Live link:https://iiitkresourcesv3.netlify.app/
+Full-stack academic hub for IIIT Kota students to **upload, moderate, search, and share** previous-year question papers and notes — plus a peer **community Q&A**.
 
-## Technologies Used
+**Live:** [https://iiitkresourcesv3.netlify.app/](https://iiitkresourcesv3.netlify.app/)
 
-- **Frontend:** React.js
-- **Backend:** Node.js, Express.js
-- **Database:** MongoDB (with GridFS for file storage)
-- **Authentication:** JWT token
-- **Styling:** Tailwind CSS
-- **File Uploading:** Multer and Multer-GridFS-Storage
+## Highlights (production-oriented)
+
+- **JWT auth** in httpOnly cookies (register, login, logout, OTP password reset)
+- **GridFS** for exam PDFs/images with admin accept/decline workflow
+- **Cloudinary** notes pipeline with subject / year / semester filters
+- **Favorites** on papers & notes + **contribution stats** on profile
+- **Debounced search** across paper metadata and notes
+- **Community** posts with tags, upvotes, and replies
+- Upload validation (PDF/images, 25MB), admin-protected role changes
+
+## Stack
+
+| Layer | Tech |
+|-------|------|
+| Frontend | React 18, React Router, Tailwind CSS |
+| Backend | Node.js, Express |
+| Data | MongoDB + GridFS, Cloudinary |
+| Auth | JWT (cookies), bcrypt, Nodemailer OTP |
 
 ## Features
 
-- **User Authentication:** Users must log in through Auth0 to upload and mark papers as favorites.
-- **File Uploading:** Users can upload question papers and other study resources as PDFs or images.
-- **Grid View for Resources:** All resources are neatly displayed with options to filter by year, branch, and subject.
-- **Metadata Handling:** Each file has associated metadata, such as year, branch, file name, and description.
-- **Approval Process:** Uploaded resources are only made public after admin approval.
+1. Browse & filter question papers (infinite scroll)
+2. Browse & search notes
+3. Authenticated uploads → pending → admin approval
+4. Save favorites; view stats on profile
+5. Community Q&A (ask / reply / upvote)
+6. Admin dashboard for pending queues & role management
 
-## Installation
+## Setup
 
 ### Prerequisites
 
-- Node.js and npm installed on your machine.
-- MongoDB set up locally or using MongoDB Atlas.
-- Auth0 account for managing user authentication.
+- Node.js + npm
+- MongoDB Atlas (or local)
+- Cloudinary account (notes)
+- SMTP credentials for OTP emails
 
-### Step to clone the repo
+### Backend
 
-1. Clone the repository:
+```bash
+cd backend
+npm install
+# create .env (see below)
+npm start
+```
 
-   ```bash
-   git clone https://github.com/your-username/iiitk-resources-platform.git
-   cd iiitk-resources-platform
-## Usage
+### Frontend
 
-1. Once the app is running:
-   - Go to [http://localhost:3000](http://localhost:3000) in your browser.
-   - Log in using your Auth0 credentials.
-2. Users can upload question papers or images via the upload page.
-3. Browse and filter existing papers by year, branch, and subject.
+```bash
+cd my-react-app
+npm install
+# set REACT_APP_API_URL and admin emails in .env
+npm start
+```
 
-## File Upload and Metadata
+### Environment (backend `.env`)
 
-When uploading a file (PDF or image), you must fill in the following fields:
+```
+PORT=5000
+SECRET_KEY=your_jwt_secret
+MONGO_URI=your_mongodb_uri
+FRONTEND_LOCAL_URL=http://localhost:3000
+FRONTEND_DEPLOY_URL=https://your-frontend.netlify.app
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+EMAIL_ADMIN1=admin1@iiitkota.ac.in
+EMAIL_ADMIN2=admin2@iiitkota.ac.in
+# plus Nodemailer SMTP vars used in utils/sendEmail.js
+```
 
-- **Year**: Choose between First, Second, Third, or Fourth Year.
-- **Branch**: Select between CSE (Computer Science), ECE (Electronics), or AI (Artificial Intelligence).
-- **File Name**: Provide a suitable name for the file.
-- **Description**: Add a brief description of the file content (optional).
+### Environment (frontend `.env`)
 
-> **Note**: Uploaded files will only be available after admin approval.
+```
+REACT_APP_API_URL=http://localhost:5000
+REACT_APP_ADMIN1=...
+REACT_APP_ADMIN2=...
+```
 
-## Screenshots
+## API map (selected)
 
-### Main Loading Page
-This is the page users see when they first load the app.
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/user/register` · `/user/login` | — | Auth |
+| GET | `/user/me` · `/user/stats` · `/user/favorites` | user | Profile |
+| POST | `/user/favorites` | user | Toggle favorite |
+| GET | `/api/uploads` | public | Papers (`q`, year, branch) |
+| GET | `/api/upload/notes` | public | Notes |
+| GET | `/api/search` | public | Unified search |
+| GET/POST | `/api/community` | public / user | Community feed & create |
+| GET | `/api/health` | — | Health check |
 
-![main loading page](https://github.com/user-attachments/assets/38c89b82-0b11-449f-b785-2ec438ce27e2)
+## Resume / demo talking points
 
+- Dual storage: **GridFS** for large exam files + **Cloudinary** for notes
+- **Moderation workflow** before public visibility
+- Hardened **role change** & password-reset OTP verification
+- Product features interviewers notice: favorites, search, contribution metrics, community
 
-### Main Data Page
-This page displays all uploaded exam papers and resources in a grid format with filtering options.
+## License
 
-![Screenshot 2024-10-06 002943](https://github.com/user-attachments/assets/7fbfa99e-a3f3-48c1-b6e8-5980d30731f1)
-
-
-### Login Page
-Users must log in through Auth0 before they can upload or mark papers as favorites.
-![login](https://github.com/user-attachments/assets/5b3a1779-0a86-4135-99ab-5053ad3f3988)
-![user main page](https://github.com/user-attachments/assets/8c3a349c-b82a-49c3-b863-2701798ec5f4)
-
-
-
-### Upload Page
-Users can upload exam papers and other resources using a form. Files are made public only after admin approval.
-
-![document upload main page](https://github.com/user-attachments/assets/395f89e8-cf0c-449e-b872-b0bd6e216874)
-
-
-## Features
-
-- Upload PDFs and images with metadata (Year, Branch, File Name, and Description).
-- Filter resources by Year, Branch, and Subject.
-- Admin approval required for uploaded files.
-- Mark files as favorites after logging in.
+Student project — IIIT Kota Resources.

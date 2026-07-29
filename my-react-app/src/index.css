@@ -1,3 +1,63 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-sans text-ink bg-paper antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 10% -10%, rgba(15, 118, 110, 0.12), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 0%, rgba(11, 31, 51, 0.08), transparent);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    @apply bg-accent-soft text-ink;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8;
+  }
+
+  .page-title {
+    @apply font-display text-3xl sm:text-4xl text-ink tracking-tight;
+  }
+
+  .page-subtitle {
+    @apply text-ink-muted text-sm sm:text-base mt-2 max-w-2xl;
+  }
+
+  .surface-card {
+    @apply bg-paper-card border border-paper-line rounded-2xl shadow-soft transition-shadow duration-300 hover:shadow-lift;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-accent text-white px-4 py-2.5 text-sm font-medium
+      hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/40 transition-colors duration-200;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-paper-line bg-white px-4 py-2.5 text-sm font-medium text-ink
+      hover:border-accent hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-colors duration-200;
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-paper-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-ink-muted/70
+      focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition;
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded-full bg-accent-soft text-accent px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .skeleton {
+    @apply rounded-xl bg-gradient-to-r from-paper via-white to-paper bg-[length:200%_100%] animate-shimmer;
+  }
+}

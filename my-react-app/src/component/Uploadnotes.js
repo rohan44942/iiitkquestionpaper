@@ -60,12 +60,6 @@ const UploadNotes = () => {
 
     dispatch({ type: "SET_UPLOADING", payload: true });
 
-    const isAdmin =
-      user.email === process.env.REACT_APP_ADMIN1 ||
-      user.email === process.env.REACT_APP_ADMIN2;
-    const status = isAdmin ? "accepted" : "pending";
-    dispatch({ type: "SET_UPLOADING", payload: status });
-
     const formData = new FormData();
     formData.append("file", state.file);
 
@@ -93,6 +87,12 @@ const UploadNotes = () => {
   const handleMetaSubmit = async (e) => {
     e.preventDefault();
 
+    const isAdmin =
+      user?.role === "admin" ||
+      user?.email === process.env.REACT_APP_ADMIN1 ||
+      user?.email === process.env.REACT_APP_ADMIN2;
+    const status = isAdmin ? "accepted" : "pending";
+
     dispatch({ type: "SET_UPLOADING", payload: true });
     const metadata = {
       subjectName: state.subjectName,
@@ -100,7 +100,8 @@ const UploadNotes = () => {
       semester: state.semester,
       branch: state.branch,
       fileLink: state.fileLink,
-      status: state.status,
+      status,
+      uploadedBy: user?.email || user?.fullName || "A helper",
     };
 
     try {

@@ -3,45 +3,27 @@ const cors = require("cors");
 const multer = require("multer");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-// const path = require("path");
-// const cloudinary = require("cloudinary").v2;
 const fileUpload = require("express-fileupload");
 require("dotenv").config();
-// takign from my files
-const { connect } = require("../backend/connectdb/connectdb");
-const { storage } = require("./multerStorage/storage");
 
-const getAllFiles = require("./routes/upload");
-const getByFileName = require("./routes/upload");
-const uploadpapers = require("./routes/upload");
-const getLinkFromCloudinary = require("./routes/upload");
-const uploadNotes = require("./routes/upload");
-const getUplodedNotes = require("./routes/upload");
-const getPendingExamFile = require("./routes/upload");
-const getPendingNotesFile = require("./routes/upload");
-const declineNoteUpload = require("./routes/upload");
-const acceptNoteUpload = require("./routes/upload");
-const downloadByFileName = require("./routes/upload");
-const { userModel } = require("./schema/userSchema");
-// user routes
-const register = require("./routes/userRoutes");
-const login = require("./routes/userRoutes");
-const getUserDetails = require("./routes/userRoutes");
-const logout = require("./routes/userRoutes");
-const changeRole = require("./routes/userRoutes");
-const router = require("./routes/userRoutes");
+const { connect } = require("./connectdb/connectdb");
+const { storage } = require("./multerStorage/storage");
+const uploadRouter = require("./routes/upload");
+const userRouter = require("./routes/userRoutes");
+const communityRouter = require("./routes/communityRoutes");
+const { unifiedSearch, downloadByFileName } = require("./controller/uploadcontroller");
 
 const app = express();
 const port = process.env.PORT || 5000;
 
 const allowedOrigins = [
-  process.env.FRONTEND_LOCAL_URL, // From .env for development
-  process.env.FRONTEND_DEPLOY_URL, // From .env for production
-];
+  process.env.FRONTEND_LOCAL_URL,
+  process.env.FRONTEND_DEPLOY_URL,
+].filter(Boolean);
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (allowedOrigins.includes(origin) || !origin) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
@@ -51,109 +33,58 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-app.use(express.json());
+app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
-// Initialize gfs and gridfsBucket
-let gfs, gridfsBucket;
+let gfs;
 
 connect().then(() => {
   const db = mongoose.connection.db;
-  gridfsBucket = new mongoose.mongo.GridFSBucket(db, { bucketName: "uploads" });
-  gfs = gridfsBucket;
+  gfs = new mongoose.mongo.GridFSBucket(db, { bucketName: "uploads" });
   app.locals.gfs = gfs;
 });
 
-// Set up GridFS storage engine
+const upload = multer({
+  storage,
+  limits: { fileSize: 25 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ok =
+      file.mimetype === "application/pdf" ||
+      file.mimetype.startsWith("image/");
+    if (ok) cb(null, true);
+    else cb(new Error("Only PDF and image files are allowed"));
+  },
+});
 
-const upload = multer({ storage });
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", service: "iiitk-resources" });
+});
 
-// Route to upload files and metadata
-// app.use("/api/uploads", upload.single("image"), uploadpapers);
-app.use("/api/uploads", upload.single("image"), uploadpapers);
+app.get("/api/search", unifiedSearch);
 
-// Route to fetch a file by filename
-app.use("/api/uploads/", getByFileName);
-// For download
-app.use("/api", downloadByFileName);
+const attachGfs = (req, res, next) => {
+  req.gfs = req.app.locals.gfs;
+  next();
+};
 
-// For preview
-// app.get("/api/preview/:filename", (req, res) => {
-//   const filename = req.params.filename;
-//   const readStream = gfs.openDownloadStreamByName(filename);
-//   readStream.pipe(res);
-// });
+app.get("/api/download/:filename", attachGfs, downloadByFileName);
 
-// Route to fetch all files with metadata those have status as accepted
-
-app.use("/api/uploads/", getAllFiles);
-
+app.use("/api/uploads", upload.single("image"), uploadRouter);
 app.use(
   "/api/upload",
-  fileUpload({ useTempFiles: true }),
-  getLinkFromCloudinary
+  fileUpload({ useTempFiles: true, limits: { fileSize: 25 * 1024 * 1024 } }),
+  uploadRouter
 );
+app.use("/api/community", communityRouter);
+app.use("/", userRouter);
 
-app.use("/api/upload", uploadNotes);
-
-// get from the notes data base
-app.use("/api/upload", getUplodedNotes); // correct error of this route
-
-app.use("/api/uploads", getPendingExamFile);
-app.use("/api/uploads", getPendingNotesFile);
-
-// Import ObjectId for working with MongoDB IDs
-
-app.delete("/api/uploads", declineNoteUpload);
-
-app.put("/api/uploads", acceptNoteUpload);
-
-// user login
-// Register
-app.get("/user/data", async (req, res) => {
-  const { email } = req.query; // Extract email from query parameters
-  // Validate the input
-  if (!email) {
-    return res.status(400).json({ message: "Please provide a valid email." });
-  }
-
-  try {
-    // Find the user with the specified email, selecting only fullName, role, and email fields
-    const user = await userModel
-      .findOne({ email })
-      .select("fullName role email");
-
-    // If no user is found, return a 404 status
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    // Respond with the user data
-    res.status(200).json({ user });
-  } catch (err) {
-    // Handle any server errors
-    console.error("Error finding user with email:", err.message);
-    res.status(500).json({ message: "An error occurred while fetching the user." });
-  }
-});
-app.use("/", register);
-
-app.use("/", login);
-
-app.use("/", getUserDetails);
-
-app.use("/", logout);
-
-// app.use("/", findUserWithEmail);
-app.use("/", changeRole);
-//forgot password
-app.use("/user", router);
-// Error handling middleware to capture errors
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send("Something broke!");
+  console.error(err.stack || err);
+  const status = err.message?.includes("Only PDF") ? 400 : 500;
+  res.status(status).json({
+    message: err.message || "Something broke!",
+  });
 });
 
 app.listen(port, () => console.log(`Server running on port ${port}`));

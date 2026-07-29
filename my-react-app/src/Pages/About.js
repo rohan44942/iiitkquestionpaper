@@ -1,34 +1,44 @@
-
 function About() {
-    return (
-        <div className="bg-cream min-h-screen flex flex-col items-center justify-center p-6  bg-gradient-to-r from-gray-100 via-gray-300 to-gray-600">
-            <div className="bg-white shadow-lg rounded-lg p-8 max-w-2xl">
-                <h1 className="text-3xl font-bold text-light-green mb-4 text-center">About Us</h1>
-                <p className="text-gray-700 mb-4">
-                    Welcome to the IIIT Kota Resource Platform! We are dedicated to providing students with access to a wealth of educational resources,
-                    including previous question papers, study materials, and more. Our goal is to enhance learning and support academic success.
-                </p>
-                <h2 className="text-2xl font-semibold text-light-green mt-4">Our Mission</h2>
-                <p className="text-gray-700 mb-4">
-                    Our mission is to empower students with easy access to vital resources, ensuring they are well-prepared for their exams.
-                    We believe that education should be accessible to all, and we strive to create an inclusive learning environment.
-                </p>
-                <h2 className="text-2xl font-semibold text-light-green mt-4">Why Choose Us?</h2>
-                <ul className="list-disc list-inside text-gray-700 mb-4">
-                    <li>Comprehensive collection of resources for various engineering disciplines.</li>
-                    <li>User-friendly interface for easy navigation.</li>
-                    <li>Continuous updates to keep the resource pool relevant.</li>
-                </ul>
-                <h2 className="text-2xl font-semibold text-light-green mt-4">Get Involved</h2>
-                <p className="text-gray-700 mb-4">
-                    Join our community and contribute to the knowledge base. Upload your study materials and help your peers succeed!
-                </p>
-                <p className="text-gray-500 text-center mt-8">
-                    &copy; {new Date().getFullYear()} IIIT Kota Resources. All rights reserved.
-                </p>
-            </div>
+  return (
+    <div className="page-shell max-w-3xl">
+      <div className="surface-card p-8 sm:p-10 animate-fadeUp">
+        <h1 className="page-title">About IIITK Resources</h1>
+        <p className="page-subtitle !max-w-none">
+          A student-built hub for IIIT Kota — previous year papers, notes, and a
+          peer community so juniors never start from zero.
+        </p>
+
+        <div className="mt-8 space-y-6 text-sm text-ink-soft leading-relaxed">
+          <section>
+            <h2 className="font-display text-xl text-ink mb-2">What you get</h2>
+            <ul className="space-y-2 list-disc list-inside">
+              <li>Exam papers streamed from MongoDB GridFS with admin moderation</li>
+              <li>Notes hosted via Cloudinary and searchable by subject</li>
+              <li>Favorites and contribution stats on your profile</li>
+              <li>Community Q&amp;A with tags, upvotes, and replies</li>
+              <li>JWT cookie auth with OTP password reset</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="font-display text-xl text-ink mb-2">Built for campus</h2>
+            <p>
+              Upload what helped you survive midterms. After approval, it shows
+              up for everyone. The more the campus contributes, the stronger the
+              archive becomes.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display text-xl text-ink mb-2">Stack</h2>
+            <p>
+              React · Express · MongoDB (GridFS) · Cloudinary · JWT · Tailwind CSS
+            </p>
+          </section>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
 
 export default About;

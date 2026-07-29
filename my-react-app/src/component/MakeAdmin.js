@@ -44,10 +44,11 @@ function MakeAdmin() {
       setError(null);
 
       const response = await fetch(`${api_uri}/user/changeRole`, {
-        method: "PUT", // Explicit method type
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ email: userData.user.email, role: newRole }),
       });
 

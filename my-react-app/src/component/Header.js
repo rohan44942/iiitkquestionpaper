@@ -1,81 +1,69 @@
-import React from "react";
+import React, { useContext } from "react";
 import { NavLink } from "react-router-dom";
-import { useContext } from "react";
 import { UserContext } from "../contextapi/userContext";
-import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
+import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
-import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 
 const Header = () => {
   const { isAuthenticated, user } = useContext(UserContext);
+  const isAdmin = user?.role === "admin";
+
   return (
-    <div className="text-black bg-transparent text-center flex flex-row justify-end pr-5 h-[4.2rem] border-slate-700 border-r-2">
-      <div>
-        <NavLink
-          to="/Community"
-          className={({ isActive }) =>
-            `flex flex-col items-center  w-full py-2 px-3 mt-2 hover:bg-blue-100 hover:border-spacing-2 hover:border hover:rounded-sm transition-colors ${
-              isActive ? "text-blue-600 font-extrabold" : ""
-            }`
-          }
-        >
-          <span className="">
-            <GroupOutlinedIcon className="text-blue-500" />
-            {/* <span className="ml-2 pt-1">Community</span> */}
-          </span>
-        </NavLink>
-      </div>
-      <div>
-        {isAuthenticated ? (
-          user.email === "2021kucp1109@iiitkota.ac.in" ||
-          user.email === "2021kuec2066@iiitkota.ac.in" ||
-          user.role === "admin" ? (
-            <NavLink
-              to="/admin"
-              className={({ isActive }) =>
-                `flex flex-col items-center  w-full mt-1 px-3 hover:bg-blue-100 hover:border-spacing-2 hover:border hover:rounded-sm transition-colors ${
-                  isActive ? "text-blue-600 font-extrabold" : ""
-                }`
-              }
-            >
-              <span className="text-2xl">
-                <AdminPanelSettingsOutlinedIcon className="text-blue-500" />
-              </span>
-              <span className="text-sm mt-1">Admin</span>
-            </NavLink>
+    <header className="sticky top-0 z-30 md:pl-[4.75rem] bg-paper/80 backdrop-blur-md border-b border-paper-line">
+      <div className="flex items-center justify-between h-14 px-4 sm:px-6">
+        <div className="pl-10 md:pl-0">
+          <p className="font-display text-base sm:text-lg text-ink leading-tight">
+            IIITK Resources
+          </p>
+          <p className="text-[11px] text-ink-muted hidden sm:block">
+            Papers · Notes · Peer help
+          </p>
+        </div>
+
+        <div className="flex items-center gap-1">
+          {isAuthenticated ? (
+            <>
+              {isAdmin && (
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) =>
+                    `flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm transition-colors ${
+                      isActive
+                        ? "bg-accent-soft text-accent"
+                        : "text-ink-muted hover:bg-white hover:text-ink"
+                    }`
+                  }
+                >
+                  <AdminPanelSettingsOutlinedIcon fontSize="small" />
+                  <span className="hidden sm:inline">Admin</span>
+                </NavLink>
+              )}
+              <NavLink
+                to="/user"
+                className={({ isActive }) =>
+                  `flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm transition-colors ${
+                    isActive
+                      ? "bg-accent-soft text-accent"
+                      : "text-ink-muted hover:bg-white hover:text-ink"
+                  }`
+                }
+              >
+                <AccountCircleOutlinedIcon fontSize="small" />
+                <span className="hidden sm:inline max-w-[8rem] truncate">
+                  {user?.fullName?.split(" ")[0] || "Profile"}
+                </span>
+              </NavLink>
+            </>
           ) : (
-            <NavLink
-              to="/user"
-              className={({ isActive }) =>
-                `flex flex-col items-center w-full  mt-1 px-3 hover:bg-blue-100 hover:border-spacing-2 hover:border hover:rounded-sm transition-colors  ${
-                  isActive ? "text-blue-600 font-extrabold" : ""
-                }`
-              }
-            >
-              <span className="text-2xl">
-                <AccountCircleOutlinedIcon className="text-blue-500" />
-              </span>
-              <span className="text-sm mt-1">User</span>
+            <NavLink to="/login" className="btn-primary !py-2">
+              <LoginOutlinedIcon fontSize="small" />
+              Login
             </NavLink>
-          )
-        ) : (
-          <NavLink
-            to="/login"
-            className={({ isActive }) =>
-              `flex flex-col items-center  w-full py-2 px-3 mt-2 hover:bg-blue-100 hover:border-spacing-2 hover:border hover:rounded-sm transition-colors ${
-                isActive ? "text-blue-600 font-extrabold" : ""
-              }`
-            }
-          >
-            <span className="">
-              <LogoutOutlinedIcon className="text-blue-500 " />
-              <span className="ml-2 pt-1">Login</span>
-            </span>
-          </NavLink>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </header>
   );
 };
 

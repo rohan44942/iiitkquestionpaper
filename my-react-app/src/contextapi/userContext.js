@@ -1,22 +1,18 @@
-import React, { createContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useState, useEffect, useRef, useCallback } from "react";
 
-// Create context
 export const UserContext = createContext();
 
-// Context provider component
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const apiurl = process.env.REACT_APP_API_URL;
+  const apiurlRef = useRef(apiurl);
 
-  // Function to update user state and authentication status
   const updateUser = (userData) => {
     setUser(userData);
-    setIsAuthenticated(!!userData); // True if userData exists
+    setIsAuthenticated(!!userData);
   };
-
-  const apiurlRef = useRef(apiurl);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -33,7 +29,6 @@ export const UserProvider = ({ children }) => {
           updateUser(data.user);
         }
       } catch (err) {
-        console.log(err);
         updateUser(null);
       } finally {
         setIsLoading(false);
@@ -43,17 +38,47 @@ export const UserProvider = ({ children }) => {
     checkAuthStatus();
   }, []);
 
-  // Logout function
   const logout = async () => {
     try {
       await fetch(`${apiurl}/user/logout`, {
         method: "GET",
         credentials: "include",
       });
-
-      updateUser(null); // Clear user and authentication state
+      updateUser(null);
     } catch (err) {
       console.error("Logout failed:", err.message);
+    }
+  };
+
+  const isFavorite = useCallback(
+    (resourceId, resourceType) => {
+      if (!user?.favorites) return false;
+      return user.favorites.some(
+        (f) => f.resourceId === resourceId && f.resourceType === resourceType
+      );
+    },
+    [user]
+  );
+
+  const toggleFavorite = async ({ resourceId, resourceType, title, meta }) => {
+    if (!isAuthenticated) {
+      window.location.href = "/login";
+      return null;
+    }
+    try {
+      const response = await fetch(`${apiurl}/user/favorites`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resourceId, resourceType, title, meta }),
+      });
+      if (!response.ok) throw new Error("Failed to update favorite");
+      const data = await response.json();
+      setUser((prev) => (prev ? { ...prev, favorites: data.favorites } : prev));
+      return data;
+    } catch (err) {
+      console.error(err);
+      return null;
     }
   };
 
@@ -65,6 +90,8 @@ export const UserProvider = ({ children }) => {
         logout,
         updateUser,
         isLoading,
+        isFavorite,
+        toggleFavorite,
       }}
     >
       {children}
