@@ -15,6 +15,7 @@ function ShowNotes() {
   const [notes, setNotes] = useState([]);
   const [yearFilter, setYearFilter] = useState("");
   const [semesterFilter, setSemesterFilter] = useState("");
+  const [branchFilter, setBranchFilter] = useState("");
   const [subjectInput, setSubjectInput] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -22,10 +23,15 @@ function ShowNotes() {
   const [loading, setLoading] = useState(false);
   const apiUrl = process.env.REACT_APP_API_URL;
   const observerRef = useRef();
+  const skipSearchReset = useRef(true);
   const admin1 = process.env.REACT_APP_ADMIN1;
   const admin2 = process.env.REACT_APP_ADMIN2;
 
   useEffect(() => {
+    if (skipSearchReset.current) {
+      skipSearchReset.current = false;
+      return;
+    }
     const t = setTimeout(() => {
       setSubjectFilter(subjectInput.trim());
       setCurrentPage(1);
@@ -59,10 +65,12 @@ function ShowNotes() {
         const params = new URLSearchParams({ page: String(page) });
         if (yearFilter) params.set("year", yearFilter);
         if (semesterFilter) params.set("semester", semesterFilter);
+        if (branchFilter) params.set("branch", branchFilter);
         if (subjectFilter) params.set("subject", subjectFilter);
 
         const response = await fetch(`${apiUrl}/api/upload/notes?${params}`, {
           credentials: "include",
+          cache: "no-store",
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
@@ -74,7 +82,7 @@ function ShowNotes() {
         setLoading(false);
       }
     },
-    [yearFilter, semesterFilter, subjectFilter, apiUrl]
+    [yearFilter, semesterFilter, branchFilter, subjectFilter, apiUrl]
   );
 
   useEffect(() => {
@@ -122,7 +130,7 @@ function ShowNotes() {
       </div>
 
       <div className="surface-card p-4 mb-6 animate-fadeUp">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <select
             value={yearFilter}
             onChange={(e) => {
@@ -150,6 +158,20 @@ function ShowNotes() {
             <option value="">All semesters</option>
             <option value="1st Sem">1st Sem</option>
             <option value="2nd Sem">2nd Sem</option>
+          </select>
+          <select
+            value={branchFilter}
+            onChange={(e) => {
+              setBranchFilter(e.target.value);
+              setCurrentPage(1);
+              setNotes([]);
+            }}
+            className="field"
+          >
+            <option value="">All branches</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="AI">AI</option>
           </select>
           <label className="relative">
             <SearchOutlinedIcon

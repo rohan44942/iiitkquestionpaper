@@ -22,11 +22,17 @@ function Home() {
   const [hasMore, setHasMore] = useState(true);
   const [totalFiles, setTotalFiles] = useState(0);
   const observerRef = useRef();
+  const skipSearchReset = useRef(true);
   const apiUrl = process.env.REACT_APP_API_URL;
   const admin1 = process.env.REACT_APP_ADMIN1;
   const admin2 = process.env.REACT_APP_ADMIN2;
 
+  // Debounce search only — do not clear results on initial mount
   useEffect(() => {
+    if (skipSearchReset.current) {
+      skipSearchReset.current = false;
+      return;
+    }
     const t = setTimeout(() => {
       setSearchQuery(searchInput.trim());
       setCurrentPage(1);
@@ -38,6 +44,7 @@ function Home() {
   const fetchFiles = useCallback(
     async (page) => {
       setIsLoading(true);
+      setError(null);
       try {
         const params = new URLSearchParams({
           page: String(page),
@@ -49,10 +56,12 @@ function Home() {
 
         const response = await fetch(`${apiUrl}/api/uploads/?${params}`, {
           credentials: "include",
+          cache: "no-store",
         });
         if (!response.ok) throw new Error("Failed to fetch files");
         const data = await response.json();
-        setFiles((prev) => (page === 1 ? data.files : [...prev, ...data.files]));
+        const nextFiles = Array.isArray(data.files) ? data.files : [];
+        setFiles((prev) => (page === 1 ? nextFiles : [...prev, ...nextFiles]));
         setHasMore(data.currentPage < data.totalPages);
         setTotalFiles(data.totalFiles || 0);
       } catch (err) {

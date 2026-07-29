@@ -15,6 +15,7 @@ const { unifiedSearch, downloadByFileName } = require("./controller/uploadcontro
 
 const app = express();
 const port = process.env.PORT || 5000;
+app.set("etag", false); // avoid 304 empty bodies breaking SPA fetch JSON parsing
 
 const allowedOrigins = [
   process.env.FRONTEND_LOCAL_URL,

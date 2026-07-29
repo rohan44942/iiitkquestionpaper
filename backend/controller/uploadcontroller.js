@@ -2,6 +2,13 @@ const mongoose = require("mongoose");
 const cloudinary = require("cloudinary").v2;
 const { ObjectId } = require("mongodb");
 const { Note } = require("../schema/noteschema");
+const {
+  ciExact,
+  normalizeBranchCode,
+  branchMatchCondition,
+  andConditions,
+  containsCi,
+} = require("../utils/filterHelpers");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -15,13 +22,14 @@ const uploadpapers = async (req, res) => {
   const { year, branch, description, fileName, status, uploadedBy } = req.body;
   try {
     const filesCollection = mongoose.connection.db.collection("uploads.files");
+    const normalizedBranch = normalizeBranchCode(branch) || branch || "N/A";
 
     await filesCollection.updateOne(
       { _id: req.file.id },
       {
         $set: {
-          "metadata.year": year || "N/A",
-          "metadata.branch": branch || "N/A",
+          "metadata.year": (year || "N/A").toString().trim(),
+          "metadata.branch": normalizedBranch,
           "metadata.description": description || "No description",
           "metadata.fileName": fileName || req.file.filename,
           "metadata.status": status || req.file.status,
@@ -42,26 +50,36 @@ const uploadpapers = async (req, res) => {
 
 const getAllFiles = async (req, res) => {
   const { year, branch, q, page = 1, limit = 10 } = req.query;
-  const skip = (page - 1) * limit;
+  const limitNum = parseInt(limit) || 10;
+  const pageNum = parseInt(page) || 1;
+  const skip = (pageNum - 1) * limitNum;
 
   try {
-    const filter = { "metadata.status": "accepted" };
+    let filter = { "metadata.status": "accepted" };
 
     if (year) {
-      filter["metadata.year"] = year;
+      // "1st sem midterm" matches "1st Sem Midterm" etc.
+      filter["metadata.year"] = ciExact(year);
     }
-    if (branch) {
-      filter["metadata.branch"] = { $regex: new RegExp(branch, "i") };
+
+    const branchCond = branch
+      ? branchMatchCondition("metadata.branch", branch)
+      : null;
+    if (branchCond) {
+      filter = andConditions(filter, branchCond);
     }
+
     if (q && q.trim()) {
-      const term = q.trim();
-      filter.$or = [
-        { "metadata.fileName": { $regex: term, $options: "i" } },
-        { "metadata.description": { $regex: term, $options: "i" } },
-        { filename: { $regex: term, $options: "i" } },
-        { "metadata.branch": { $regex: term, $options: "i" } },
-        { "metadata.year": { $regex: term, $options: "i" } },
-      ];
+      const term = containsCi(q);
+      filter = andConditions(filter, {
+        $or: [
+          { "metadata.fileName": term },
+          { "metadata.description": term },
+          { filename: term },
+          { "metadata.branch": term },
+          { "metadata.year": term },
+        ],
+      });
     }
 
     const files = await mongoose.connection.db
@@ -69,7 +87,7 @@ const getAllFiles = async (req, res) => {
       .find(filter)
       .sort({ uploadDate: -1 })
       .skip(skip)
-      .limit(parseInt(limit))
+      .limit(limitNum)
       .toArray();
 
     const totalFiles = await mongoose.connection.db
@@ -79,8 +97,8 @@ const getAllFiles = async (req, res) => {
     res.status(200).json({
       files,
       totalFiles,
-      currentPage: parseInt(page),
-      totalPages: Math.ceil(totalFiles / limit) || 1,
+      currentPage: pageNum,
+      totalPages: Math.ceil(totalFiles / limitNum) || 1,
     });
   } catch (error) {
     res.status(500).json({
@@ -114,23 +132,23 @@ const unifiedSearch = async (req, res) => {
   if (!q.trim()) {
     return res.status(200).json({ papers: [], notes: [] });
   }
-  const term = q.trim();
+  const term = containsCi(q);
   try {
     const paperFilter = {
       "metadata.status": "accepted",
       $or: [
-        { "metadata.fileName": { $regex: term, $options: "i" } },
-        { "metadata.description": { $regex: term, $options: "i" } },
-        { filename: { $regex: term, $options: "i" } },
-        { "metadata.branch": { $regex: term, $options: "i" } },
+        { "metadata.fileName": term },
+        { "metadata.description": term },
+        { filename: term },
+        { "metadata.branch": term },
       ],
     };
     const noteFilter = {
       status: "accepted",
       $or: [
-        { subjectName: { $regex: term, $options: "i" } },
-        { branch: { $regex: term, $options: "i" } },
-        { year: { $regex: term, $options: "i" } },
+        { subjectName: term },
+        { branch: term },
+        { year: term },
       ],
     };
 
@@ -143,28 +161,30 @@ const unifiedSearch = async (req, res) => {
       Note.find(noteFilter).limit(parseInt(limit)).lean(),
     ]);
 
-    res.status(200).json({ papers, notes, query: term });
+    res.status(200).json({ papers, notes, query: q.trim() });
   } catch (error) {
     res.status(500).json({ message: "Search failed", error: error.message });
   }
 };
+
 const getPaginatedFiles = async (req, res) => {
   const { page = 1, limit = 10, year, branch } = req.query;
 
   try {
     const filesCollection = mongoose.connection.db.collection("uploads.files");
-
-    const filter = {};
-    if (year) filter["metadata.year"] = year;
-    if (branch) filter["metadata.branch"] = branch;
+    let filter = {};
+    if (year) filter["metadata.year"] = ciExact(year);
+    const branchCond = branch
+      ? branchMatchCondition("metadata.branch", branch)
+      : null;
+    if (branchCond) filter = andConditions(filter, branchCond);
 
     const totalFiles = await filesCollection.countDocuments(filter);
-
     const totalPages = Math.ceil(totalFiles / limit);
 
     const files = await filesCollection
       .find(filter)
-      .sort({ uploadedAt: -1 })
+      .sort({ uploadDate: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .toArray();
@@ -198,9 +218,8 @@ const getByFileName = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Error querying the file", error });
   }
-}; // done
+};
 
-// cloudinary upload
 const getLinkFromCloudinary = (req, res) => {
   const file = req.files.file;
   cloudinary.uploader.upload(file.tempFilePath, (error, result) => {
@@ -212,16 +231,16 @@ const getLinkFromCloudinary = (req, res) => {
     return res.json({ secure_url: result.secure_url });
   });
 };
-// upload notes to mongo
+
 const uploadNotes = async (req, res) => {
   const { subjectName, year, semester, branch, fileLink, status, uploadedBy } =
     req.body;
   try {
     const newNote = new Note({
-      subjectName,
-      year,
-      semester,
-      branch,
+      subjectName: (subjectName || "").trim(),
+      year: (year || "").trim(),
+      semester: (semester || "").trim(),
+      branch: normalizeBranchCode(branch) || (branch || "").trim(),
       fileLink,
       status: status || "pending",
       uploadedBy: uploadedBy || req.user?.email || "A helper",
@@ -237,20 +256,25 @@ const uploadNotes = async (req, res) => {
 
 const getUplodedNotes = async (req, res) => {
   try {
-    const { page = 1, year, semester, subject, q } = req.query;
+    const { page = 1, year, semester, subject, q, branch } = req.query;
     const limit = 6;
-    const skip = (page - 1) * limit;
+    const pageNum = parseInt(page) || 1;
+    const skip = (pageNum - 1) * limit;
 
-    const filter = { status: "accepted" };
+    let filter = { status: "accepted" };
 
-    if (year) filter.year = year;
-    if (semester) filter.semester = semester;
+    if (year) filter.year = ciExact(year);
+    if (semester) filter.semester = ciExact(semester);
+
+    const branchCond = branch ? branchMatchCondition("branch", branch) : null;
+    if (branchCond) filter = andConditions(filter, branchCond);
+
     const searchTerm = subject || q;
     if (searchTerm) {
-      filter.$or = [
-        { subjectName: { $regex: new RegExp(searchTerm, "i") } },
-        { branch: { $regex: new RegExp(searchTerm, "i") } },
-      ];
+      const term = containsCi(searchTerm);
+      filter = andConditions(filter, {
+        $or: [{ subjectName: term }, { branch: term }],
+      });
     }
 
     const [notes, totalNotes] = await Promise.all([
@@ -261,7 +285,7 @@ const getUplodedNotes = async (req, res) => {
     res.status(200).json({
       notes,
       totalPages: Math.ceil(totalNotes / limit) || 1,
-      currentPage: parseInt(page),
+      currentPage: pageNum,
       hasMore: notes.length === limit,
       totalNotes,
     });
@@ -272,7 +296,7 @@ const getUplodedNotes = async (req, res) => {
     });
   }
 };
-// get pending file to the admin
+
 const getPendingNotesFile = async (req, res) => {
   try {
     const files = await mongoose.connection.db
@@ -286,6 +310,7 @@ const getPendingNotesFile = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 const getPendingExamFile = async (req, res) => {
   try {
     const files = await mongoose.connection.db
@@ -319,12 +344,11 @@ const declineNoteUpload = async (req, res) => {
       res.status(400).json({ message: "Invalid type provided." });
     }
   } catch (error) {
-    console.error("Error:", error); // Log the error
+    console.error("Error:", error);
     res.status(500).json({ message: "Error deleting the upload.", error });
   }
 };
 
-// Accept an upload (either exam or note)
 const acceptNoteUpload = async (req, res) => {
   const { id, type } = req.params;
   try {
