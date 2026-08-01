@@ -6,8 +6,7 @@ import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettin
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 
 const Header = () => {
-  const { isAuthenticated, user } = useContext(UserContext);
-  const isAdmin = user?.role === "admin";
+  const { isAuthenticated, user, isAdmin } = useContext(UserContext);
 
   return (
     <header className="sticky top-0 z-30 md:pl-[4.75rem] bg-paper/80 backdrop-blur-md border-b border-paper-line">

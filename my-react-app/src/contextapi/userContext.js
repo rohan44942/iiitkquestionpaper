@@ -82,11 +82,17 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  const isAdmin =
+    user?.role === "admin" ||
+    user?.email === process.env.REACT_APP_ADMIN1 ||
+    user?.email === process.env.REACT_APP_ADMIN2;
+
   return (
     <UserContext.Provider
       value={{
         user,
         isAuthenticated,
+        isAdmin: !!isAdmin,
         logout,
         updateUser,
         isLoading,

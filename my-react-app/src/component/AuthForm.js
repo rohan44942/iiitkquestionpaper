@@ -176,15 +176,17 @@ const AuthForm = ({ baseUrl }) => {
             : "Register"}
         </button>
       </form>
-      <p className="mt-4 text-sm text-center text-ink-muted">
-        <button
-          type="button"
-          className="text-accent hover:underline"
-          onClick={() => navigate("/forgot-password")}
-        >
-          Forgot password?
-        </button>
-      </p>
+      {isLogin && (
+        <p className="mt-4 text-sm text-center text-ink-muted">
+          <button
+            type="button"
+            className="text-accent hover:underline"
+            onClick={() => navigate("/forgot-password")}
+          >
+            Forgot password?
+          </button>
+        </p>
+      )}
       <p className="mt-2 text-sm text-center text-ink-muted">
         {isLogin ? "No account?" : "Already registered?"}{" "}
         <button type="button" className="text-accent hover:underline" onClick={toggleForm}>

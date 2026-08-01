@@ -1,79 +1,131 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
+const STEPS = [
+  { id: 1, label: "Email" },
+  { id: 2, label: "OTP" },
+  { id: 3, label: "Password" },
+  { id: 4, label: "Done" },
+];
+
+const RESEND_SECONDS = 60;
+
 const ResetPassword = () => {
   const baseUrl = process.env.REACT_APP_API_URL;
-  const [step, setStep] = useState(1); // Tracks the current step
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [isOtpSent, setIsOtpSent] = useState(false); // Track OTP sent state
-  const [isResendAllowed, setIsResendAllowed] = useState(false); // Track resend OTP state
-  const [loading, setLoading] = useState(false); // Track OTP sending process
-  const [showPassword, setShowPassword] = useState(false); // Track password visibility
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+  const timerRef = useRef(null);
 
-  const handleRequestOtp = async () => {
-    if (!email) {
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  const startResendCooldown = () => {
+    setResendIn(RESEND_SECONDS);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setResendIn((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const clearMessages = () => {
+    setError("");
+    setSuccess("");
+  };
+
+  const handleRequestOtp = async (isResend = false) => {
+    if (!email.trim()) {
       setError("Email is required.");
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Enter a valid email address.");
+      return;
+    }
 
-    setLoading(true); // Start loading animation
+    setLoading(true);
+    clearMessages();
 
     try {
       const response = await fetch(`${baseUrl}/user/forgot-password`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
 
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.message || "Failed to request OTP");
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to send OTP");
+      }
 
-      setSuccess(data.message);
-      setError("");
-      setStep(2); // Move to OTP verification step
-      setIsOtpSent(true); // OTP has been sent successfully
-      setIsResendAllowed(true); // Allow resend OTP after OTP is sent
+      setSuccess(
+        isResend
+          ? "A new OTP has been sent to your email."
+          : "OTP sent to your email. Check your inbox."
+      );
+      setStep(2);
+      if (isResend) setOtp("");
+      startResendCooldown();
     } catch (err) {
       setError(err.message);
-      setSuccess("");
-      setIsOtpSent(false); // OTP wasn't sent due to error
     } finally {
-      setLoading(false); // End loading animation
+      setLoading(false);
     }
   };
 
   const handleVerifyOtp = async () => {
-    if (!otp) {
+    if (!otp.trim()) {
       setError("OTP is required.");
       return;
     }
+    if (!/^\d{6}$/.test(otp.trim())) {
+      setError("OTP must be a 6-digit code.");
+      return;
+    }
+
+    setLoading(true);
+    clearMessages();
 
     try {
       const response = await fetch(`${baseUrl}/user/verify-otp`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, otp }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          otp: otp.trim(),
+        }),
       });
 
       const data = await response.json();
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(data.message || "OTP verification failed");
+      }
 
-      setSuccess(data.message);
-      setError("");
-      setStep(3); // Move to password reset step
+      setSuccess("OTP verified. Set your new password.");
+      setStep(3);
     } catch (err) {
       setError(err.message);
-      setSuccess("");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,153 +134,258 @@ const ResetPassword = () => {
       setError("Both password fields are required.");
       return;
     }
-
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
     if (newPassword !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
 
+    setLoading(true);
+    clearMessages();
+
     try {
       const response = await fetch(`${baseUrl}/user/update-password`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, newPassword }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          newPassword,
+        }),
       });
 
       const data = await response.json();
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(data.message || "Failed to update password");
+      }
 
-      setSuccess(data.message);
-      setError("");
-      setStep(4); // Move to success step
+      setSuccess("Password updated successfully.");
+      setStep(4);
     } catch (err) {
       setError(err.message);
-      setSuccess("");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handle resend OTP button
-  const handleResendOtp = () => {
-    setIsOtpSent(false); // Reset the OTP sent status to false
-    handleRequestOtp(); // Call to request OTP again
+  const stepTitle = {
+    1: "Forgot password",
+    2: "Enter OTP",
+    3: "New password",
+    4: "All set",
   };
 
-  // Toggle the show password functionality
-  const toggleShowPassword = () => {
-    setShowPassword((prev) => !prev); // Toggle between true and false
+  const stepSubtitle = {
+    1: "We’ll email a 6-digit code to reset your password.",
+    2: `Code sent to ${email}. Valid for 10 minutes.`,
+    3: "Choose a strong password with at least 8 characters.",
+    4: "You can sign in with your new password.",
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-6">
-          Reset Your Password
-        </h2>
+    <div className="page-shell flex justify-center">
+      <div className="surface-card w-full max-w-md p-6 sm:p-8 animate-fadeUp">
+        <div className="flex justify-between gap-1 mb-6">
+          {STEPS.map((s) => (
+            <div key={s.id} className="flex-1 text-center">
+              <div
+                className={`mx-auto h-1.5 rounded-full transition-colors ${
+                  step >= s.id ? "bg-accent" : "bg-paper-line"
+                }`}
+              />
+              <p
+                className={`text-[10px] mt-1.5 uppercase tracking-wide ${
+                  step >= s.id ? "text-accent" : "text-ink-muted"
+                }`}
+              >
+                {s.label}
+              </p>
+            </div>
+          ))}
+        </div>
 
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        {success && <p className="text-green-500 mb-4">{success}</p>}
+        <h1 className="font-display text-2xl sm:text-3xl text-ink text-center">
+          {stepTitle[step]}
+        </h1>
+        <p className="text-sm text-ink-muted text-center mt-2 mb-6">
+          {stepSubtitle[step]}
+        </p>
+
+        {error && (
+          <div className="mb-4 rounded-xl bg-rose-50 text-rose-600 text-sm px-3 py-2.5">
+            {error}
+          </div>
+        )}
+        {success && step !== 4 && (
+          <div className="mb-4 rounded-xl bg-accent-soft text-accent text-sm px-3 py-2.5">
+            {success}
+          </div>
+        )}
 
         {step === 1 && (
-          <>
-            <input
-              type="email"
-              className="w-full p-3 border rounded mb-4"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleRequestOtp(false);
+            }}
+          >
+            <label className="block text-sm font-medium text-ink">
+              Email
+              <input
+                type="email"
+                autoComplete="email"
+                className="field mt-1.5"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </label>
             <button
-              onClick={handleRequestOtp}
-              disabled={isOtpSent || loading} // Disable if OTP is sent or if loading
-              className="w-full bg-blue-500 text-white py-2 rounded"
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full disabled:opacity-60"
             >
-              {loading ? (
-                <span className="animate-spin inline-block w-5 h-5 border-4 border-t-4 border-white rounded-full"></span>
-              ) : isOtpSent ? (
-                "OTP Sent"
-              ) : (
-                "Request OTP"
-              )}
+              {loading ? "Sending OTP…" : "Send OTP"}
             </button>
-            <Link
-              to="/login"
-              className="text-blue-500 hover:underline flex flex-row justify-center align-middle mt-[3%]"
-            >
-              Go to Login ?
-            </Link>
-          </>
+            <p className="text-sm text-center text-ink-muted">
+              <Link to="/login" className="text-accent hover:underline">
+                Back to login
+              </Link>
+            </p>
+          </form>
         )}
 
         {step === 2 && (
-          <>
-            <input
-              type="text"
-              className="w-full p-3 border rounded mb-4"
-              placeholder="Enter OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-            />
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleVerifyOtp();
+            }}
+          >
+            <label className="block text-sm font-medium text-ink">
+              6-digit OTP
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                className="field mt-1.5 tracking-[0.35em] text-center text-lg font-medium"
+                placeholder="••••••"
+                value={otp}
+                onChange={(e) =>
+                  setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+              />
+            </label>
             <button
-              onClick={handleVerifyOtp}
-              className="w-full bg-blue-500 text-white py-2 rounded"
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full disabled:opacity-60"
             >
-              Verify OTP
+              {loading ? "Verifying…" : "Verify OTP"}
             </button>
-
-            {isResendAllowed && !isOtpSent && (
+            <button
+              type="button"
+              disabled={loading || resendIn > 0}
+              onClick={() => handleRequestOtp(true)}
+              className="btn-ghost w-full disabled:opacity-60"
+            >
+              {resendIn > 0 ? `Resend OTP in ${resendIn}s` : "Resend OTP"}
+            </button>
+            <p className="text-sm text-center text-ink-muted">
               <button
-                onClick={handleResendOtp}
-                className="w-full bg-yellow-500 text-white py-2 rounded mt-4"
+                type="button"
+                className="text-accent hover:underline"
+                onClick={() => {
+                  clearMessages();
+                  setStep(1);
+                  setOtp("");
+                }}
               >
-                Resend OTP
+                Change email
               </button>
-            )}
-          </>
+            </p>
+          </form>
         )}
 
         {step === 3 && (
-          <>
-            <input
-              type={showPassword ? "text" : "password"} // Toggle between password and text type
-              className="w-full p-3 border rounded mb-4"
-              placeholder="Enter new password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <input
-              type={showPassword ? "text" : "password"} // Toggle between password and text type
-              className="w-full p-3 border rounded mb-4"
-              placeholder="Confirm new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleUpdatePassword();
+            }}
+          >
+            <label className="block text-sm font-medium text-ink">
+              New password
+              <div className="relative mt-1.5">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  className="field pr-10"
+                  placeholder="At least 8 characters"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </label>
+            <label className="block text-sm font-medium text-ink">
+              Confirm password
+              <div className="relative mt-1.5">
+                <input
+                  type={showConfirm ? "text" : "password"}
+                  autoComplete="new-password"
+                  className="field pr-10"
+                  placeholder="Re-enter password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted"
+                  onClick={() => setShowConfirm((v) => !v)}
+                  aria-label={
+                    showConfirm ? "Hide confirm password" : "Show confirm password"
+                  }
+                >
+                  {showConfirm ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </label>
             <button
-              onClick={toggleShowPassword}
-              type="button"
-              className="text-blue-500 mb-4"
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full disabled:opacity-60"
             >
-              {showPassword ? "Hide Password" : "Show Password"}
+              {loading ? "Updating…" : "Update password"}
             </button>
-            <button
-              onClick={handleUpdatePassword}
-              className="w-full bg-blue-500 text-white py-2 rounded"
-            >
-              Update Password
-            </button>
-          </>
+          </form>
         )}
 
         {step === 4 && (
-          <p className="text-green-500 text-center">
-            Password updated successfully! You can now log in with your new
-            password.
-            <Link to="/login" className="text-blue-500 hover:underline">
-              Go to Login
+          <div className="text-center space-y-5">
+            <div className="mx-auto h-14 w-14 rounded-2xl bg-accent-soft text-accent flex items-center justify-center text-2xl font-display">
+              ✓
+            </div>
+            <p className="text-sm text-ink-muted">
+              Your password has been updated. Sign in with your new credentials.
+            </p>
+            <Link to="/login" className="btn-primary w-full">
+              Go to login
             </Link>
-          </p>
+          </div>
         )}
       </div>
     </div>

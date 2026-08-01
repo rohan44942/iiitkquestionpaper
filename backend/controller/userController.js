@@ -141,7 +141,7 @@ const changeRole = async (req, res) => {
 };
 
 const sendOtp = async (req, res) => {
-  const { email } = req.body;
+  const email = (req.body.email || "").trim().toLowerCase();
 
   try {
     const user = await userModel.findOne({ email });
@@ -159,28 +159,43 @@ const sendOtp = async (req, res) => {
     user.resetVerifiedUntil = undefined;
     await user.save();
 
-    const message = `
-      <p>Your OTP for resetting the password is: <strong>${otp}</strong>.</p>
-      <p>This OTP is valid for 10 minutes. If you did not request this, please ignore this email.</p>
-    `;
-
     await sendEmail({
       email: user.email,
-      subject: "Password Reset OTP",
-      message,
+      subject: "Your IIITK Resources password reset OTP",
+      otp,
     });
 
-    res.status(200).json({ message: "OTP sent to your email." });
+    const devLog =
+      String(process.env.EMAIL_DEV_LOG || "")
+        .trim()
+        .toLowerCase() === "true";
+
+    res.status(200).json({
+      message: devLog
+        ? "OTP generated (dev mode). Check the backend console for the code."
+        : "OTP sent to your email.",
+    });
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .json({ message: "Something went wrong. Please try again later." });
+    let message = "Something went wrong. Please try again later.";
+    if (err.code === "EMAIL_CONFIG") {
+      message =
+        "Email is not configured. Set EMAIL_USER and EMAIL_PASS in backend/.env.";
+    } else if (err.code === "EMAIL_AUTH") {
+      message = err.message;
+    } else if (
+      err.code === "EMAIL_SEND" ||
+      err.message === "Error sending email"
+    ) {
+      message = "Could not send email. Please try again later.";
+    }
+    res.status(500).json({ message });
   }
 };
 
 const verifyOtp = async (req, res) => {
-  const { email, otp } = req.body;
+  const email = (req.body.email || "").trim().toLowerCase();
+  const otp = String(req.body.otp || "").trim();
 
   try {
     const user = await userModel.findOne({ email });
@@ -212,7 +227,8 @@ const verifyOtp = async (req, res) => {
 };
 
 const updatePassword = async (req, res) => {
-  const { email, newPassword } = req.body;
+  const email = (req.body.email || "").trim().toLowerCase();
+  const { newPassword } = req.body;
 
   try {
     const user = await userModel.findOne({ email });

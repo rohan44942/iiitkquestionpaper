@@ -8,19 +8,20 @@ function MakeAdmin() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [updatingRole, setUpdatingRole] = useState(false);
-  const [currRole, setcurrRole] = useState("");
+
   const fetchUser = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`${api_uri}/user/data?email=${email}`, {
-        method: "GET", // Explicit method type
-        headers: {
-          "Content-Type": "application/json", // Ensure JSON is expected
-        },
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${api_uri}/user/data?email=${encodeURIComponent(email.trim())}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("User not found or an error occurred.");
@@ -45,9 +46,7 @@ function MakeAdmin() {
 
       const response = await fetch(`${api_uri}/user/changeRole`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ email: userData.user.email, role: newRole }),
       });
@@ -55,13 +54,11 @@ function MakeAdmin() {
       if (!response.ok) {
         throw new Error("Failed to update user role.");
       }
-      setcurrRole(newRole);
+
       setUserData((prevData) => ({
         ...prevData,
         user: { ...prevData.user, role: newRole },
       }));
-
-      // Update the role locally after a successful response
     } catch (err) {
       setError(err.message);
     } finally {
@@ -77,66 +74,68 @@ function MakeAdmin() {
     fetchUser();
   };
 
+  const currentRole = userData?.user?.role;
+
   return (
-    <div className="flex flex-col w-full items-center justify-center p-[10%]">
-      <div className="w-full max-w-md  h-full rounded-lg shadow-md p-6 bg-slate-400">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-          Make Admin
-        </h2>
+    <section className="surface-card p-6 sm:p-8">
+      <h2 className="font-display text-2xl text-ink">Make admin</h2>
+      <p className="text-sm text-ink-muted mt-1 mb-5">
+        Search a user by email, then promote or remove admin access.
+      </p>
 
-        <div className=" m-3 flex flex-col gap-3 items-center sm:flex-row sm:items-start md:gap-4 lg:gap-6">
-          <input
-            type="text"
-            placeholder="Enter user email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="p-2 border border-gray-300 rounded-md w-full sm:flex-grow focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all w-full sm:w-auto"
-            onClick={handleClick}
-          >
-            Search
-          </button>
-        </div>
-
-        {loading && <p className="text-gray-600 text-center">Loading...</p>}
-        {error && <p className="text-red-500 text-center">{error}</p>}
-        {userData && (
-          <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-md">
-            <h3 className="text-lg font-semibold text-gray-800">
-              User Details:
-            </h3>
-            <p className="text-gray-700">
-              <strong>Name:</strong> {userData.user.fullName}
-            </p>
-            <p className="text-gray-700">
-              <strong>Email:</strong> {userData.user.email}
-            </p>
-            <p className="text-gray-700">
-              <strong>Role:</strong> {currRole}
-              <button
-                className={`ml-2 px-3 py-1 rounded-md ${
-                  updatingRole
-                    ? "bg-gray-400 text-gray-100 cursor-not-allowed"
-                    : currRole === "admin"
-                    ? "bg-red-500 text-white hover:bg-red-600"
-                    : "bg-green-500 text-white hover:bg-green-600"
-                }`}
-                onClick={handleRoleToggle}
-                disabled={updatingRole}
-              >
-                {updatingRole
-                  ? "Updating..."
-                  : userData.user.role === "admin"
-                  ? "Remove Admin"
-                  : "Make Admin"}
-              </button>
-            </p>
-          </div>
-        )}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <input
+          type="email"
+          placeholder="user@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleClick()}
+          className="field sm:flex-1"
+        />
+        <button type="button" className="btn-primary shrink-0" onClick={handleClick}>
+          Search
+        </button>
       </div>
-    </div>
+
+      {loading && (
+        <p className="text-sm text-ink-muted text-center mt-4">Searching…</p>
+      )}
+      {error && (
+        <p className="text-sm text-red-600 text-center mt-4">{error}</p>
+      )}
+
+      {userData && (
+        <div className="mt-5 rounded-2xl border border-paper-line bg-paper p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="font-display text-lg text-ink">
+                {userData.user.fullName}
+              </p>
+              <p className="text-sm text-ink-muted mt-0.5">
+                {userData.user.email}
+              </p>
+              <span className="chip mt-2 capitalize">{currentRole}</span>
+            </div>
+            <button
+              type="button"
+              className={
+                currentRole === "admin"
+                  ? "btn-ghost text-red-600 hover:border-red-300 hover:text-red-700"
+                  : "btn-primary"
+              }
+              onClick={handleRoleToggle}
+              disabled={updatingRole}
+            >
+              {updatingRole
+                ? "Updating…"
+                : currentRole === "admin"
+                  ? "Remove admin"
+                  : "Make admin"}
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 
